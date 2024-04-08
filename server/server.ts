@@ -87,7 +87,6 @@ app.post('/api/auth/logout', (req: Request, res: Response, next: (err: any) => v
   })
 })
 
-
 app.get('/', (req: Request, res: Response) => {
   if (!req.isAuthenticated()) {
     res.status(401).send('Please <a href="/api/auth/login">log in </a> first.')

@@ -1,0 +1,45 @@
+/* maroon: #7E3430 */
+/* tan: #DECB9E */
+/* light blue: #C1D5B9 */
+/* teal: #3D888B */
+/* dark green: #0C2F2E */
+
+/* background (teal variant) #f7fafa */
+
+.app {
+  font-family: 'Roboto Slab', sans-serif;
+  background-color: #f7fafa;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.light-text {
+  color: #f7fafa !important;
+}
+
+.navbar {
+  background-color: #0C2F2E;
+}
+
+.navbar-link {
+  margin: auto;
+  color: #f7fafa;
+}
+
+.navbar-link:hover {
+  color: #d5dede;
+}
+
+.navbar-link-opaque {
+  margin: auto;
+  background-color: #f7fafa;
+  color: #0c2f2e;
+  padding: .1rem .7rem;
+  border-radius: 5px;
+}
+
+.navbar-link-opaque:hover {
+  background-color: #d5dede;
+  color: #0c2f2e;
+  text-decoration: none;
+}
