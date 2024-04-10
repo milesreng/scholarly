@@ -37,7 +37,8 @@
         Submit
       </b-button>
     </b-form>
-    <div @click="handleGoogleLogin">Log in with google</div>
+    <a href='/api/auth/login'>Log in with gitlab</a>
+    <!-- <div @click="handleGitlabLogin">Log in with google</div> -->
   </div>
 </template>
 
@@ -58,12 +59,6 @@ const handleLogin = async (e: any) => {
 
 const handleTogglePassword = () => {
   showPassword.value = !showPassword.value
-}
-
-const handleGoogleLogin = async () => {
-  console.log('logging in with google')
-  const res = await fetch('/api/auth/login')
-  console.log(res)
 }
 
 </script>

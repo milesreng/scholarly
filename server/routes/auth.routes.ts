@@ -1,10 +1,7 @@
 /* eslint-disable quotes */
 import express, { Request, Response } from 'express'
-import passport from 'passport'
 
 const router = express.Router()
-
-
 
 router.get('/failed', (req: Request, res: Response) => {
   res.status(400).send('login failed')

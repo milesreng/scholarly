@@ -5,10 +5,10 @@ const router = express.Router()
 
 // @route   GET api/users/
 // @desc    Get user data
-router.get('/user', userController.getUser)
+router.get('/profile', userController.getUser)
 
 // @route   GET api/users/
 // @desc    Get user data
-router.get('/', userController.getUsers)
+// router.get('/ ', userController.getUsers)
 
 export default router

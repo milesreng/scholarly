@@ -1,6 +1,5 @@
 // import { ObjectId } from 'mongodb'
 import mongoose from 'mongoose'
-import passportLocalMongoose from 'passport-local-mongoose'
 
 export interface User {
   name: string,
@@ -32,7 +31,7 @@ export const userSchema = new mongoose.Schema<IUser>({
   }
 }, { timestamps: true })
 
-userSchema.plugin(passportLocalMongoose)
+// userSchema.plugin(passportLocalMongoose)
 
 export const User = mongoose.model<IUser>('User', userSchema)
 
