@@ -8,9 +8,19 @@
 
 .app {
   font-family: 'Roboto Slab', sans-serif;
-  background-color: #f7fafa;
+  /* background-color: #f7fafa; */
   width: 100%;
   min-height: 100vh;
+}
+
+.font-roboto {
+  font-family: 'Roboto Slab', sans-serif;
+
+}
+
+.dashboard-container {
+  background-color: #f1efef;
+
 }
 
 .light-text {
@@ -18,14 +28,22 @@
 }
 
 .navbar {
-  background-color: #0C2F2E;
+  background-color: #e4e1e1;
+
+  border-bottom: 2px solid #aaa;
+  /* background-color: #0C2F2E; */
+}
+
+.sub-navbar {
+  background-color: #f1efef;
+
 }
 
 .navbar-link {
   margin: auto;
-  color: #f7fafa;
+  /* color: #f7fafa; */
 }
-
+/* 
 .navbar-link:hover {
   color: #d5dede;
 }
@@ -42,4 +60,4 @@
   background-color: #d5dede;
   color: #0c2f2e;
   text-decoration: none;
-}
+} */

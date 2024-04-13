@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express, { Request, Response } from 'express'
+import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import pino from 'pino'
 import cors from 'cors'
@@ -9,18 +10,20 @@ import MongoStore from 'connect-mongo'
 import session from 'express-session'
 import expressPinoLogger from 'express-pino-logger'
 import { Issuer, Strategy, generators } from 'openid-client'
-import passport from './config/passport'
-import { connectDB } from './config/db.config'
+import passport from 'passport'
 
-import { User } from './models/user.model'
-import authRoutes from './routes/auth.routes'
+import { MongoUser } from './models/user.model'
 import userRoutes from './routes/user.routes'
-import groupRoutes from './routes/group.routes'
+import taskRoutes from './routes/task.routes'
+import projectRoutes from './routes/project.routes'
+import { checkAuth } from './middleware/checkAuth'
+import { Collection } from 'mongoose'
 
 dotenv.config()
 
 const client = new MongoClient(process.env.MONGODB_URI)
 let db: Db
+let tasks: Collection
 
 const app = express()
 const port = process.env.PORT || 5174
@@ -28,7 +31,7 @@ const port = process.env.PORT || 5174
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-const logger = pino({
+export const logger = pino({
   transport: {
     target: 'pino-pretty'
   }
@@ -36,7 +39,10 @@ const logger = pino({
 
 app.use(expressPinoLogger({ logger }))
 
-app.use(cors())
+app.use(cors({
+  origin: 'http://127.0.0.1:5173',
+  credentials: true
+}))
 
 app.use(session({
   secret: 'abcdefg',
@@ -49,21 +55,17 @@ app.use(session({
   })
 }))
 
-// declare module 'express-session' {
-//   export interface SessionData {
-//     credits?: number
-//   }
-// }
-
 app.use(passport.initialize())
 app.use(passport.session())
 
-passport.serializeUser((user, done) => {
-  console.log('serializeUser', user)
+passport.serializeUser((user: any, done) => {
+  logger.info('serializeUser')
+  console.log(user)
   done(null, user)
 })
-passport.deserializeUser((user, done) => {
-  console.log('deserializeUser', user)
+passport.deserializeUser((user: any, done) => {
+  logger.info('deserializeUser')
+  console.log(user)
   done(null, user)
 })
 
@@ -72,8 +74,8 @@ app.get('/api/auth/login', passport.authenticate('oidc', {
 }))
 
 app.get('/api/auth/callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: '/',
-  failureRedirect: '/',
+  successReturnToOrRedirect: 'http://127.0.0.1:5173/dashboard',
+  failureRedirect: 'http://127.0.0.1:5173',
 }))
 
 app.post('/api/auth/logout', (req: Request, res: Response, next: (err: any) => void) => {
@@ -84,21 +86,13 @@ app.post('/api/auth/logout', (req: Request, res: Response, next: (err: any) => v
   })
 })
 
-app.use('/api/users', userRoutes)
-app.use('/api/groups', groupRoutes)
+app.use('/api/user', userRoutes)
+app.use('/api/tasks', taskRoutes)
+app.use('/api/projects', projectRoutes)
 
-// app.get('/api', (req: Request, res: Response) => {
-//   if (!req.isAuthenticated()) {
-//     console.log('not authenticated')
-//     return res.status(401).send('Please <a href="/api/auth/login">log in </a> first.')
-//   }
+mongoose.set('strictQuery', true)
 
-//   const name = (req?.user as any)?.preferred_username || 'unknown'
-
-//   return res.status(200).send(name)
-// })
-
-client.connect().then(async () => {
+mongoose.connect(process.env.MONGODB_URI).then(async () => {
   logger.info('Connected to MongoDB')
 
   const issuer = await Issuer.discover('https://coursework.cs.duke.edu/')
@@ -116,6 +110,20 @@ client.connect().then(async () => {
 
   const verify = async (tokenSet: any, userInfo: any, done: any) => {
     logger.info('oidc', JSON.stringify(userInfo))
+
+    const existUser = await MongoUser.findOne({ oidc_username: userInfo.preferred_username })
+
+    console.log('existUser', existUser)
+
+    if (!existUser) {
+      logger.info('user does not exist')
+      const user = new MongoUser({
+        oidc_username: userInfo.preferred_username,
+        display_name: userInfo.name || null
+      })
+
+      await user.save()
+    }
 
     // role-based access control:
     // userInfo.roles = userInfo.groups.includes(ADMIN_GROUP_ID) ? ['admin'] : ['member']

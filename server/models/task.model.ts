@@ -1,17 +1,13 @@
 import mongoose from 'mongoose'
 
-export interface ITaskComment extends mongoose.Document {
-  content: string
-  author: mongoose.Schema.Types.ObjectId
-}
-
 export interface ITask extends mongoose.Document {
   title: string
-  dueDate: Date
-  description: string
+  dueDate: Date | null
+  description: string | null
   status: 'not-started' | 'in-progress' | 'complete'
-  assignedTo: mongoose.Schema.Types.ObjectId[]
-  comments: ITaskComment[]
+  creatorId: string
+  userIds: string[]
+  projectId: mongoose.Schema.Types.ObjectId | null
 }
 
 export const taskSchema = new mongoose.Schema<ITask>({
@@ -30,17 +26,16 @@ export const taskSchema = new mongoose.Schema<ITask>({
     enum: ['not-started', 'in-progress', 'complete'],
     default: 'not-started'
   },
-  assignedTo: {
-    type: [mongoose.Schema.Types.ObjectId],
-    ref: 'User'
+  creatorId: {
+    type: String,
+    // required: true
   },
-  comments: {
-    type: [new mongoose.Schema<ITaskComment>({
-      content: {
-        type: String,
-        required: true
-      }
-    })]
+  userIds: {
+    type: [String]
+  },
+  projectId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Project'
   }
 }, { timestamps: true })
 

@@ -1,37 +1,37 @@
-// import { ObjectId } from 'mongodb'
-import mongoose from 'mongoose'
+import { Express } from 'express'
+import mongoose from 'mongoose';
 
-export interface User {
-  name: string,
-  username: string,
-  email: string,
+export interface OIDCUser extends Express.User {
+  preferred_username: string
+  sub: string | null
+  sub_legacy: string | null
+  name: string
+  nickname: string | null
+  email: string
+  email_verified: boolean
+  profile: string
+  picture: string | null 
 }
 
 export interface IUser extends mongoose.Document {
-  name: string,
-  username: string,
-  email: string,
-  // password: string,
+  oidc_username: string
+  display_name: string
+  public: boolean
 }
 
 export const userSchema = new mongoose.Schema<IUser>({
-  name: {
-    type: String,
-    required: true,
-  },
-  username: {
+  oidc_username: {
     type: String,
     required: true,
     unique: true
   },
-  email: {
+  display_name: {
     type: String,
-    required: true,
-    unique: true
+  },
+  public: {
+    type: Boolean,
+    default: false
   }
 }, { timestamps: true })
 
-// userSchema.plugin(passportLocalMongoose)
-
-export const User = mongoose.model<IUser>('User', userSchema)
-
+export const MongoUser = mongoose.model<IUser>('User', userSchema)

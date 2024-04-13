@@ -5,8 +5,8 @@ import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import App from './App.vue'
 import HomeScreen from './views/HomeScreen.vue'
 import DashboardScreen from './views/DashboardScreen.vue'
-import LoginScreen from './views/LoginScreen.vue'
-import RegisterScreen from './views/RegisterScreen.vue'
+import TaskScreen from './views/TaskScreen.vue'
+import ProfileScreen from './views/ProfileScreen.vue'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
@@ -19,19 +19,24 @@ const routes = [
     component: HomeScreen
   },
   {
+    path: '/dashboard/:projectId/tasks',
+    component: TaskScreen,
+    props: ({ params: { projectId }}) => ({ projectId })
+  },
+  {
+    path: '/dashboard/:projectId',
+    component: DashboardScreen,
+    props: ({ params: { projectId }}) => ({ projectId })
+  },
+  {
     path: '/dashboard',
     name: 'dashboard',
-    component: DashboardScreen
+    component: DashboardScreen,
   },
   {
-    path: '/login',
-    name: 'login',
-    component: LoginScreen
-  },
-  {
-    path: '/register',
-    name: 'register',
-    component: RegisterScreen
+    path: '/profile',
+    name: 'profile',
+    component: ProfileScreen
   }
 ]
 

@@ -1,20 +1,20 @@
-import mongoose from 'mongoose'
-import passport from '../config/passport'
-import { User } from '../models/user.model'
 import { Request, Response } from 'express'
+import { OIDCUser } from '../models/user.model'
+import { Project } from '../models/project.model'
 
 export const userController = {
   getUser: async (req: Request, res: Response) => {
     return res.json(req.user || {})
   },
-  getUsers: async (req: Request, res: Response) => {
-    try {
-      const users = await User.find({})
+  getProjects: async (req: Request, res: Response) => {
+    const userId = (req.user as OIDCUser)?.preferred_username
+    const projects = await Project.find({
+      $or: [{ userIds: userId }, { adminIds: userId }, { creatorIds: userId }]
+    })
 
-      res.status(200).json({ users })
-    } catch (error) {
-      console.log(error.message)
-      res.status(404).json({ error })
-    }
+    console.log('hello????')
+    console.log(projects)
+
+    return res.json(projects || [])
   }
 }

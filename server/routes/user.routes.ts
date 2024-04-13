@@ -9,6 +9,6 @@ router.get('/profile', userController.getUser)
 
 // @route   GET api/users/
 // @desc    Get user data
-// router.get('/ ', userController.getUsers)
+router.get('/projects', userController.getProjects)
 
 export default router
