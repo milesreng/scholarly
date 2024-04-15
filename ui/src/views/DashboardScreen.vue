@@ -3,11 +3,9 @@
     <div class="sub-navbar" style="margin: 0; width: 100%;">
       <ProjectNavbar :project="selectedProject"></ProjectNavbar>
     </div>
-    {{ user }}
     <b-container class="container py-4">
       <b-row style="align-items: end">
-        <span style="font-size: 2rem;">{{ date }}</span>
-        <span style="font-size: 1.5rem; padding-bottom: .2rem; padding-left: .8rem; ">{{ time }}</span>
+        <Clock></Clock>
       </b-row>
       <b-row v-if="userTasks" style="justify-content: space-between; margin: 1rem 0; ">
         <b-col class="dashboard-container shadow-sm" cols="4" style="padding: .5rem 1rem;">
@@ -43,7 +41,7 @@
                 <b-form-select
                   id="status-input"
                   v-model="userTasks[modalTaskIdx].status"
-                  :options="statusChoices"></b-form-select>
+                  :options="taskStatusChoices"></b-form-select>
               </b-form-group>
               <!-- TODO: implement assign to user based on group -->
               <!-- options should map to the list of possible users -->
@@ -92,19 +90,12 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, watch, inject, onMounted, computed } from 'vue'
+import { Ref, ref, inject, onMounted, computed } from 'vue'
 import ProjectNavbar from '../components/ProjectNavbar.vue'
-import { ITask } from '../../../server/models/task.model'
+import Clock from '../components/Clock.vue'
+
+import { ITask, taskStatusChoices } from '../../../server/models/task.model'
 import { IProject } from '../../../server/models/project.model'
-
-const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-
-const statusChoices = [
-  { value: 'not-started', text: 'Not started' },
-  { value: 'in-progress', text: 'In progress' },
-  { value: 'complete', text: 'Complete' }
-]
 
 interface Props {
   projectId: string
@@ -117,7 +108,7 @@ const props = withDefaults(defineProps<Props>(), {
 const user: Ref<any> = inject('user')!
 const userLoading: Ref<boolean> = inject('userLoading')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
-const userFoundStatus: Ref<string> = inject('userFoundStatus')!
+
 const userTasks: Ref<ITask[]> = ref([])
 const selectedProject = computed(() => {
   if (props.projectId) {
@@ -126,26 +117,13 @@ const selectedProject = computed(() => {
   return null
 })
 const loading = ref(true)
-const date: Ref<string> = ref('')
-const time: Ref<string> = ref(new Date().toLocaleString().split(',')[1])
 const modalTaskIdx: Ref<number> = ref(0)
 const showModal: Ref<boolean> = ref(false)
-
-const refreshTime = () => {
-  const currDate = new Date()
-
-  date.value = `${days[currDate.getDay()]} ${months[currDate.getMonth()]} ${currDate.getDate()}`
-  time.value = new Date().toLocaleString().split(',')[1]
-
-  // date.value = currDate.getDay() + ' ' + currDate.getMonth() + ' ' + currDate.getDay()
-}
 
 const openModal = (idx: number) => {
   modalTaskIdx.value = idx
   showModal.value = true
 }
-
-const closeModal = () => { showModal.value = false; }
 
 const getUserTasks = async () => {
   loading.value = true
@@ -153,18 +131,7 @@ const getUserTasks = async () => {
   loading.value = false
 }
 
-const handleUpdateTask = async () => {
-  if (userTasks.value[modalTaskIdx.value].creatorId !== user.value.preferred_username) {
-    return
-  }
-
-
-}
-
-setInterval(refreshTime, 1000)
-
 onMounted(async () => {
-  refreshTime()
   getUserTasks()
 })
 

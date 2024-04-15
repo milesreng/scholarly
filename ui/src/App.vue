@@ -3,7 +3,7 @@
     <b-navbar toggleable="lg">
       <div class="d-flex justify-content-between" style="width: 100%; color: white; text-decoration: none; ">
         <b-navbar-brand class="light-text">
-          <router-link :to="{ name: 'home' }" class="navbar-link">
+          <router-link :to="{ name: 'dashboard' }" class="navbar-link">
             <!-- <span>
               <Icon name="clipboard-list-solid" />
             </span> -->
@@ -14,9 +14,9 @@
           </router-link>
         </b-navbar-brand>
         <div v-if="user?.name" class="d-flex flex-row" style="margin: auto 0;">
-          <b-dropdown right>
+          <b-dropdown right variant="outline-secondary">
             <template #button-content>
-              <span>Profile</span>
+              <img :src="user.picture" alt="" class="rounded-circle" style="width: 30%;">
             </template>
             <b-dropdown-item style="text-align: right;" href="/profile">
               {{ user.name }}
@@ -54,20 +54,21 @@ import { IProject } from '../../server/models/project.model'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faBookOpenReader } from '@fortawesome/free-solid-svg-icons'
 
-const user = ref({} as any)
-const userProjects: Ref<IProject[]> = ref([])
-const projectDropdownTitle = ref('Project')
-
 interface DropdownOption {
   value: string,
   text: string
 }
+
+const user = ref({} as any)
+const mongoUser = ref({} as any)
+const userProjects: Ref<IProject[]> = ref([])
 
 const projectOptions: Ref<DropdownOption[]> = ref([])
 const userFoundStatus = ref('initial')
 const loading = ref(false)
 
 provide('user', user)
+provide('mongoUser', mongoUser)
 provide('userProjects', userProjects)
 provide('userLoading', loading)
 provide('userFoundStatus', userFoundStatus)
@@ -81,6 +82,7 @@ onMounted(async () => {
   userFoundStatus.value = 'found'
 
   user.value = await res.json()
+  mongoUser.value = user.value._doc
 
   const projects = await fetch('/api/user/projects')
   if (!res.ok) { console.log('no projects found'); return; }
