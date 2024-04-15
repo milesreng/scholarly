@@ -9,6 +9,10 @@ const router = express.Router()
 // @desc    Get tasks by project id
 router.get('/:id/tasks', checkAuth, projectController.getTasksByProject)
 
+// @route   GET api/project/:id/users
+// @desc    Get users by project id
+router.get('/:id/users', checkAuth, projectController.getUsersByProject)
+
 // @route   GET api/project/:id
 // @desc    Get project by id
 router.get('/:id', checkAuth, projectController.getProjectById)

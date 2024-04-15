@@ -40,3 +40,9 @@ export const taskSchema = new mongoose.Schema<ITask>({
 }, { timestamps: true })
 
 export const Task = mongoose.model<ITask>('Task', taskSchema)
+
+export const taskStatusChoices = [
+  { value: 'not-started', text: 'Not started' },
+  { value: 'in-progress', text: 'In progress' },
+  { value: 'complete', text: 'Complete' }
+]

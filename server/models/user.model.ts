@@ -16,7 +16,7 @@ export interface OIDCUser extends Express.User {
 export interface IUser extends mongoose.Document {
   oidc_username: string
   display_name: string
-  public: boolean
+  public_view: boolean
 }
 
 export const userSchema = new mongoose.Schema<IUser>({
@@ -28,7 +28,7 @@ export const userSchema = new mongoose.Schema<IUser>({
   display_name: {
     type: String,
   },
-  public: {
+  public_view: {
     type: Boolean,
     default: false
   }
