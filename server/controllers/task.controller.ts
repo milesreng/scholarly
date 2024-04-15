@@ -20,15 +20,16 @@ export const taskController = {
   createTask: async (req: Request, res: Response) => {
     const taskContent = req.body
 
-    if (!taskContent.title) return res.status(403).send('idk which error this is')
+    console.log('task', taskContent)
 
     const newTask = new Task({
-        title: taskContent.title,
-        description: taskContent.description || '',
-        dueDate: taskContent.dueDate || null,
-        creatorId: (req.user as OIDCUser)?.preferred_username || null,
-        userIds: taskContent.assignedTo || [],
-        projectId: taskContent.projectId ? new mongoose.Schema.Types.ObjectId(taskContent.projectId) : null,
+      title: taskContent.title,
+      description: taskContent.description,
+      status: taskContent.status || 'not-started',
+      dueDate: taskContent.dueDate,
+      creatorId: (req.user as OIDCUser)?.preferred_username,
+      userIds: taskContent.userIds,
+      projectId: new ObjectId(taskContent.projectId)
     })
 
     await newTask.save()

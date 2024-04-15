@@ -14,6 +14,6 @@ router.get('/:id', checkAuth, taskController.getTaskById)
 
 // @route   POST api/tasks/
 // @desc    Create a new task
-router.post('/', taskController.createTask)
+router.post('/', checkAuth, taskController.createTask)
 
 export default router

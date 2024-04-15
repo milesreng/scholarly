@@ -28,14 +28,12 @@ export const projectController = {
   getUsersByProject: async (req: Request, res: Response) => {
     const projectId = req.params.id
 
-    const userId = (req.user as OIDCUser).preferred_username
+    const userId = (req.user as OIDCUser)?.preferred_username
     const project = await Project.findById(new ObjectId(projectId))
 
-    if (!project || !project.memberIds.includes(userId) || !project.adminIds.includes(userId)) {
-      return res.status(401).send('unauthorized')
-    }
+    console.log('project', project)
 
-    const userIds = [...project.memberIds, ...project.adminIds]
+    const userIds = [...project.memberIds, ...project.adminIds, project.creatorId]
 
     const users = await MongoUser.find({ oidc_username: {
       $in: userIds

@@ -22,7 +22,10 @@
             </b-row>
             <b-row v-for="task in projectTasks" style="width: 100%;">
               <b-col cols="3" @click="openViewTaskModal">{{ task.title }}</b-col>
-              <b-col cols="3">{{ task.description }}</b-col>
+              <b-col cols="3">
+                <span v-if="task.description">{{ task.description }}</span>
+                <span v-else>-</span>
+              </b-col>
               <b-col cols="2">{{ task.status }}</b-col>
               <b-col cols="2">{{ task.userIds }}</b-col>
               <b-col cols="2">
@@ -68,15 +71,30 @@
             </b-form-textarea>
           </b-form-group>
           <b-form-group
-            label="Description"
+            label="Due Date"
             label-cols="3"
-            label-for="task-desc-input">
-            <b-form-textarea
-              id="task-desc-input"
-              v-model="createTask.description">
-            </b-form-textarea>
+            label-for="task-date-input">
+            <b-form-datepicker
+              id="task-date-input"
+              v-model="createTask.dueDate">
+            </b-form-datepicker>
+          </b-form-group>
+          <b-form-group
+            label="Assign to"
+            label-cols="3"
+            label-for="task-assign-input">
+            <b-form-select
+              id="task-assign-input"
+              multiple
+              v-model="createTask.userIds"
+              :options="projectUserOptions">
+            </b-form-select>
           </b-form-group>
         </b-form>
+          <template #modal-footer>
+            <b-button @click="closeCreateTaskModal">Cancel</b-button>
+            <b-button variant="primary" @click="handleCreateTask">Create task</b-button>
+          </template>
       </b-modal>
     </b-container>
     <b-container v-else-if="loading">
@@ -92,7 +110,6 @@ import { Ref, ref, computed, inject, onMounted } from 'vue'
 import Clock from '../components/Clock.vue'
 import ProjectNavbar from '../components/ProjectNavbar.vue'
 
-import { IUser } from '../../../server/models/user.model'
 import { IProject } from '../../../server/models/project.model'
 import { ITask } from '../../../server/models/task.model'
 
@@ -105,13 +122,18 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { projectId: ''})
 
+interface DropdownOption {
+  value: string,
+  text: string
+}
+
 const userProjects: Ref<IProject[]> = inject('userProjects')!
 const projectTasks: Ref<ITask[]> = ref([])
-const projectUsers: Ref<IUser[]> = ref([])
+const userOptions: Ref<DropdownOption[]> = ref([])
 
 const modalTask: Ref<ITask | null> = ref(null)
 const createTask: Ref<any> = ref({
-  title: '', description: '', userIds: [], projectId: '', status: 'not-started'
+  title: '', description: '', userIds: [], projectId: '', status: 'not-started', dueDate: new Date()
 })
 
 const loading = ref(false)
@@ -123,6 +145,12 @@ const selectedProject = computed(() => {
   return null
 })
 
+const projectUserOptions = computed(() => {
+  if (selectedProject.value) {
+    return [...(selectedProject.value.memberIds), ...(selectedProject.value.adminIds), selectedProject.value.creatorId]
+  }
+})
+
 const openViewTaskModal = (idx: number) => {
   if (idx < projectTasks.value.length) {
     modalTask.value = projectTasks.value[idx]
@@ -132,6 +160,23 @@ const openViewTaskModal = (idx: number) => {
 }
 
 const openCreateTaskModal = () => { showCreateTaskModal.value = true }
+const closeCreateTaskModal = () => { showCreateTaskModal.value = false }
+
+const handleCreateTask = async () => {
+  // perform data validation
+  if (!selectedProject.value) return
+
+  createTask.value.projectId = selectedProject.value._id
+
+  await fetch('/api/tasks/', {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: JSON.stringify(createTask.value)
+  })
+  console.log(createTask.value)
+}
 
 onMounted(async () => {
   const tasks = await fetch(`/api/projects/${props.projectId}/tasks`)
@@ -140,11 +185,6 @@ onMounted(async () => {
   projectTasks.value = await tasks.json() 
 
   if (projectTasks.value.length > 0) modalTask.value = projectTasks.value[0]
-
-  const users = await fetch(`/api/projects/${props.projectId}/users`)
-  if (!users.ok) return
-
-  projectUsers.value = await users.json()
 })
 
 </script>
