@@ -13,7 +13,14 @@ export const taskController = {
     return res.status(200).json(task)
   },
   getAllUserTasks: async (req: Request, res: Response) => {
+    const sortField = req.query.sort || 'dueDate'
+    const order = req.query.order || 1
+
+    let options: any = {}
+    options[(sortField as string)] = order
+
     const tasks = await Task.find({ userIds: (req.user as OIDCUser).preferred_username })
+      .sort(options)
       
     return res.status(200).json(tasks || [])
   },

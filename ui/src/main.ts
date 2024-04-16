@@ -19,19 +19,14 @@ const routes = [
     component: HomeScreen
   },
   {
-    path: '/dashboard/:projectId/tasks',
-    component: TaskScreen,
-    props: ({ params: { projectId }}) => ({ projectId })
-  },
-  {
     path: '/dashboard/:projectId',
-    component: DashboardScreen,
+    component: TaskScreen,
     props: ({ params: { projectId }}) => ({ projectId })
   },
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: DashboardScreen,
+    component: TaskScreen,
   },
   {
     path: '/profile',

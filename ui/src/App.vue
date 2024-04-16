@@ -16,7 +16,8 @@
         <div v-if="user?.name" class="d-flex flex-row" style="margin: auto 0;">
           <b-dropdown right variant="outline-secondary">
             <template #button-content>
-              <img :src="user.picture" alt="" class="rounded-circle" style="width: 30%;">
+              <!-- <img :src="user.picture" alt="" class="rounded-circle" style="width: 30%;"> -->
+              {{  user.preferred_username }}
             </template>
             <b-dropdown-item style="text-align: right;" href="/profile">
               {{ user.name }}

@@ -27,9 +27,7 @@
       </b-dropdown>
     </div>
     <div class="d-flex flex-row align-items-center" style="gap: 2rem;" v-if="props.project">
-      <a :href="'/dashboard/' + props.project._id + '/tasks'">Tasks</a>
-      <span>Chat</span>
-      <span v-if="admin">Group Settings</span>
+      <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
     </div>
     <b-modal v-model="showModal" title="Create New Project" centered content-class="font-roboto">
       <b-form>
@@ -98,6 +96,7 @@ import { DropdownOption } from '../types/options.types'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSquarePlus } from '@fortawesome/free-regular-svg-icons'
+import { faGear } from '@fortawesome/free-solid-svg-icons'
 
 interface Props {
   project: IProject | null
