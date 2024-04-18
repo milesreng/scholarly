@@ -65,22 +65,18 @@ const mongoUser = ref({} as any)
 const userProjects: Ref<IProject[]> = ref([])
 
 const projectOptions: Ref<DropdownOption[]> = ref([])
-const userFoundStatus = ref('initial')
 const loading = ref(false)
 
 provide('user', user)
 provide('mongoUser', mongoUser)
 provide('userProjects', userProjects)
 provide('userLoading', loading)
-provide('userFoundStatus', userFoundStatus)
 
 onMounted(async () => { 
   loading.value = true
 
   const res = await fetch('/api/user/profile')
-  if (!res.ok) { console.log('user not found'); userFoundStatus.value = 'not-found'; loading.value = false; return; }
-
-  userFoundStatus.value = 'found'
+  if (!res.ok) { console.log('user not found'); loading.value = false; return; }
 
   user.value = await res.json()
   mongoUser.value = user.value._doc
@@ -105,6 +101,7 @@ const handleLogout = async () => {
 
   if (res.ok) {
     user.value = {}
+    mongoUser.value = {}
     userProjects.value = []
   }
 }

@@ -7,12 +7,21 @@
       <b-row style="align-items: end">
         <Clock></Clock>
       </b-row>
-      
       <b-container>
-        <b-row class="d-flex">
-          <span @click="openCreateTaskModal" style="padding: .2rem 0;" v-if="selectedProject">
+        <b-row class="d-flex flex-column">
+          <div>
+            {{ user}}
+            Viewing tasks for 
+            <span v-if="selectedProject">
+              {{ selectedProject.title }}
+            </span>
+            <span v-else>
+              user {{ user.preferred_username }}
+            </span>
+          </div>
+          <div @click="openCreateTaskModal" style="padding: .2rem 0;" v-if="selectedProject">
             <FontAwesomeIcon :icon="faSquarePlus"></FontAwesomeIcon> Add new task
-          </span>
+          </div>
           <div v-if="projectTasks" class="d-flex flex-column" style="gap: .5rem; width: 100%;">
             <ResponsiveTask
               v-for="(task, idx) in projectTasks" 
@@ -101,7 +110,9 @@ interface DropdownOption {
   text: string
 }
 
+const user: Ref<any> = inject('user')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
+
 const projectTasks: Ref<ITask[]> = ref([])
 const userOptions: Ref<DropdownOption[]> = ref([])
 

@@ -15,18 +15,13 @@ import './style.css'
 const routes = [
   {
     path: '/',
-    name: 'home',
-    component: HomeScreen
-  },
-  {
-    path: '/dashboard/:projectId',
-    component: TaskScreen,
-    props: ({ params: { projectId }}) => ({ projectId })
-  },
-  {
-    path: '/dashboard',
     name: 'dashboard',
     component: TaskScreen,
+  },
+  {
+    path: '/:projectId',
+    component: TaskScreen,
+    props: ({ params: { projectId }}) => ({ projectId })
   },
   {
     path: '/profile',

@@ -3,7 +3,7 @@
     <div>
       <b-dropdown variant="outline-secondary" size="sm" split>
         <template #button-content v-if="props.project">
-          <a :href="'/dashboard/' + props.project._id" style="text-decoration: none; color: black;">
+          <a :href="'/' + props.project._id" style="text-decoration: none; color: black;">
             {{ props.project.title }}
           </a>
         </template>   
@@ -12,11 +12,11 @@
             All Projects
           </span>
         </template>
-        <b-dropdown-item href="/dashboard">
+        <b-dropdown-item href="/">
           All Projects
         </b-dropdown-item>
         <b-dropdown-divider></b-dropdown-divider>
-        <b-dropdown-item v-for="project in userProjects" :href="'/dashboard/' + project._id">
+        <b-dropdown-item v-for="project in userProjects" :href="'/' + project._id">
             {{ project.title }}
         </b-dropdown-item>  
         <b-dropdown-divider></b-dropdown-divider>
