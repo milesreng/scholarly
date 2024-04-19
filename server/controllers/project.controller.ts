@@ -15,7 +15,7 @@ export const projectController = {
 
       const project = await Project.findById(new ObjectId(projectId))
 
-      if (!project || !project.memberIds.includes(userId) || !project.adminIds.includes(userId)) {
+      if (!project || !project.memberIds.includes(userId) || project.creatorId !== userId) {
         return res.status(401).send('unauthorized')
       }
 
@@ -33,7 +33,7 @@ export const projectController = {
 
     console.log('project', project)
 
-    const userIds = [...project.memberIds, ...project.adminIds, project.creatorId]
+    const userIds = [...project.memberIds, project.creatorId]
 
     const users = await MongoUser.find({ oidc_username: {
       $in: userIds
@@ -43,8 +43,18 @@ export const projectController = {
   },
   getTasksByProject: async (req: Request, res: Response) => {
     const projectId = req.params.id
-    const tasks = await Task.find({ projectId: new ObjectId(projectId) })
+
+    if (!projectId) {
+      const tasks = await Task.find({ userIds: (req.user as OIDCUser)?.preferred_username })
+      return res.json(tasks)
+    }
+    const tasks = await Task.find({ projectId })
 
     return res.json(tasks)
+  },
+  getAllProjects: async (req: Request, res: Response) => {
+    const projects = await Project.find({})
+
+    return res.json(projects)
   }
 }

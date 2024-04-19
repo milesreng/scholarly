@@ -22,7 +22,7 @@ export default defineConfig({
     svgLoader(),
   ],
   server: {
-    port: 5173,
+    port: 3001,
     proxy: {
       '^/api': {
         target: 'http://127.0.0.1:5174'

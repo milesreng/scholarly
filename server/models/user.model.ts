@@ -11,6 +11,7 @@ export interface OIDCUser extends Express.User {
   email_verified: boolean
   profile: string
   picture: string | null 
+  groups: string[] | null
 }
 
 export interface IUser extends mongoose.Document {

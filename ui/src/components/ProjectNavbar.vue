@@ -1,22 +1,22 @@
 <template>
-  <div class="d-flex flex-row py-2 px-3 justify-content-between" style="width: 100%; ">
+  <div class="d-flex flex-row py-2 px-3 justify-content-between sub-navbar" style="width: 100%;">
     <div>
       <b-dropdown variant="outline-secondary" size="sm" split>
         <template #button-content v-if="props.project">
-          <a :href="'/' + props.project._id" style="text-decoration: none; color: black;">
+          <a :href="'/projects/' + props.project._id" style="text-decoration: none; color: black;">
             {{ props.project.title }}
           </a>
         </template>   
         <template #button-content v-else>
           <span>
-            All Projects
+            Select a project
           </span>
         </template>
-        <b-dropdown-item href="/">
+        <b-dropdown-item href="/projects">
           All Projects
         </b-dropdown-item>
         <b-dropdown-divider></b-dropdown-divider>
-        <b-dropdown-item v-for="project in userProjects" :href="'/' + project._id">
+        <b-dropdown-item v-for="project in userProjects" :href="'/projects/' + project._id">
             {{ project.title }}
         </b-dropdown-item>  
         <b-dropdown-divider></b-dropdown-divider>
@@ -57,18 +57,6 @@
             required></b-form-textarea>
         </b-form-group>
         <b-form-group
-          id="project-admin-group"
-          label="Admin"
-          label-for="project-admin-input"
-          label-cols="3">
-          <b-form-select multiple
-            :select-size="2"
-            id="project-admin-input"
-            v-model="newProject.adminIds"
-            :options="publicUserOptions">
-          </b-form-select>
-        </b-form-group>
-        <b-form-group
           id="project-users-group"
           label="Members"
           label-for="project-users-input"
@@ -105,12 +93,12 @@ interface Props {
 const props = defineProps<Props>()
 
 const user: Ref<any> = inject('user')!
+const siteAdmin: Ref<any> = inject('admin')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
 const newProject: Ref<any> = ref({
   title: '',
   description: '',
   memberIds: [],
-  adminIds: []
 })
 
 const validTitleInput: Ref<boolean | null> = ref(null)
@@ -119,8 +107,8 @@ const publicUserOptions: Ref<DropdownOption[]> = ref([])
 const modalLoading = ref(false)
 const showModal = ref(false)
 
-const admin = computed(() => {
-  if (props.project) return props.project.adminIds.includes(user.value.preferred_username)
+const projectAdmin = computed(() => {
+  if (props.project) return props.project.creatorId === user.value.preferred_username
   return false
 })
 

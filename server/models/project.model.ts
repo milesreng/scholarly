@@ -6,7 +6,6 @@ export interface IProject extends mongoose.Document {
   title: string
   description: string
   creatorId: string
-  adminIds: [string]
   memberIds: [string]
 }
 
@@ -21,9 +20,6 @@ export const projectSchema = new mongoose.Schema<IProject>({
   creatorId: {
     type: String,
     required: true
-  },
-  adminIds: {
-    type: [String],
   },
   memberIds: {
     type: [String],

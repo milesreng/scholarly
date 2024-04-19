@@ -10,7 +10,7 @@
       <b-container>
         <b-row class="d-flex flex-column">
           <div>
-            {{ user}}
+            <!-- {{ user}} -->
             Viewing tasks for 
             <span v-if="selectedProject">
               {{ selectedProject.title }}
@@ -132,7 +132,7 @@ const selectedProject = computed(() => {
 
 const projectUserOptions = computed(() => {
   if (selectedProject.value) {
-    return [...(selectedProject.value.memberIds), ...(selectedProject.value.adminIds), selectedProject.value.creatorId]
+    return [...(selectedProject.value.memberIds), selectedProject.value.creatorId]
   }
 })
 

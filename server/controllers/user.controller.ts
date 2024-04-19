@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { OIDCUser, MongoUser } from '../models/user.model'
 import { Project } from '../models/project.model'
+import { logger } from '../server'
 
 export const userController = {
   getUser: async (req: Request, res: Response) => {
@@ -10,10 +11,12 @@ export const userController = {
   getProjects: async (req: Request, res: Response) => {
     const userId = (req.user as OIDCUser)?.preferred_username
     const projects = await Project.find({
-      $or: [{ userIds: userId }, { adminIds: userId }, { creatorIds: userId }]
+      $or: [{ memberIds: userId }, { creatorId: userId }]
     })
 
-    console.log(projects)
+
+    logger.info('getting projects')
+    console.log('Projects', projects)
 
     return res.json(projects || [])
   },

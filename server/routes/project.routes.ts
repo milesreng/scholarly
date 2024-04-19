@@ -1,5 +1,5 @@
 import express from 'express'
-import { checkAuth } from '../middleware/checkAuth'
+import { checkAuth, checkAdmin } from '../middleware/checkAuth'
 import { projectController } from '../controllers/project.controller'
 
 const router = express.Router()
@@ -16,5 +16,9 @@ router.get('/:id/users', checkAuth, projectController.getUsersByProject)
 // @route   GET api/project/:id
 // @desc    Get project by id
 router.get('/:id', checkAuth, projectController.getProjectById)
+
+// @route   GET api/project/
+// @desc    Get project by id
+router.get('/', checkAuth, checkAdmin, projectController.getAllProjects)
 
 export default router

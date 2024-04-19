@@ -40,7 +40,7 @@ export const logger = pino({
 app.use(expressPinoLogger({ logger }))
 
 app.use(cors({
-  origin: 'http://127.0.0.1:5173',
+  origin: 'http://127.0.0.1:3001',
   credentials: true
 }))
 
@@ -74,8 +74,8 @@ app.get('/api/auth/login', passport.authenticate('oidc', {
 }))
 
 app.get('/api/auth/callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://127.0.0.1:5173/dashboard',
-  failureRedirect: 'http://127.0.0.1:5173',
+  successReturnToOrRedirect: 'http://127.0.0.1:3001/dashboard',
+  failureRedirect: 'http://127.0.0.1:3001',
 }))
 
 app.post('/api/auth/logout', (req: Request, res: Response, next: (err: any) => void) => {

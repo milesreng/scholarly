@@ -25,7 +25,9 @@
               <span style="font-size: .9rem;">@{{ user.preferred_username }}</span>
             </b-dropdown-item>
             <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item style="text-align: right;">Groups</b-dropdown-item>
+            <b-dropdown-item style="text-align: right;" href="/projects">
+                Projects
+            </b-dropdown-item>
             <b-dropdown-divider></b-dropdown-divider>
             <b-dropdown-item style="text-align: right;" @click="handleLogout">
               Logout
@@ -63,11 +65,13 @@ interface DropdownOption {
 const user = ref({} as any)
 const mongoUser = ref({} as any)
 const userProjects: Ref<IProject[]> = ref([])
+const admin = ref(false)
 
 const projectOptions: Ref<DropdownOption[]> = ref([])
 const loading = ref(false)
 
 provide('user', user)
+provide('admin', admin)
 provide('mongoUser', mongoUser)
 provide('userProjects', userProjects)
 provide('userLoading', loading)
@@ -81,10 +85,15 @@ onMounted(async () => {
   user.value = await res.json()
   mongoUser.value = user.value._doc
 
+  if (user.value.groups.includes('scholarly-admin')) {
+    admin.value = true
+  }
+
   const projects = await fetch('/api/user/projects')
   if (!res.ok) { console.log('no projects found'); return; }
 
   userProjects.value = await projects.json()
+  console.log(userProjects.value)
   projectOptions.value = userProjects.value.map((project: IProject) => {
     return { value: project._id, text: project.title }
   })

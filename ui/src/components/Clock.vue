@@ -1,5 +1,5 @@
 <template>
-  <span>
+  <span style="border-bottom: 1px solid grey; width: 100%; margin-bottom: 1rem; padding-bottom: 0.2rem;">
     <span style="font-size: 2rem;">{{ date }}</span>
     <span style="font-size: 1.5rem; padding-bottom: .2rem; padding-left: .8rem; ">{{ time }}</span>
   </span>

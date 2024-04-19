@@ -4,7 +4,7 @@ import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 
 import App from './App.vue'
 import HomeScreen from './views/HomeScreen.vue'
-import DashboardScreen from './views/DashboardScreen.vue'
+import ProjectDashboardScreen from './views/ProjectDashboardScreen.vue'
 import TaskScreen from './views/TaskScreen.vue'
 import ProfileScreen from './views/ProfileScreen.vue'
 
@@ -22,6 +22,15 @@ const routes = [
     path: '/:projectId',
     component: TaskScreen,
     props: ({ params: { projectId }}) => ({ projectId })
+  },
+  {
+    path: '/projects/:projectId',
+    component: ProjectDashboardScreen,
+    props: ({ params: { projectId }}) => ({ projectId })
+  },
+  {
+    path: '/projects',
+    component: ProjectDashboardScreen
   },
   {
     path: '/profile',
