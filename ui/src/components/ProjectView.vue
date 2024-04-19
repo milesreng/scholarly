@@ -2,12 +2,20 @@
   <b-overlay :show="loading">
   <b-button @click="refresh">Refresh</b-button>
   <b-container v-if="project" class="d-flex flex-column pb-4" style="gap: .5rem;">
+    {{  project }}
     <b-row style="border-bottom: 1px solid grey; width: 100%;" class="d-flex flex-row align-items-center">
       <b-col class="p-2 d-flex flex-column" cols="10">
         <span style="font-size: 2rem; ">{{ project.title }}</span>
+        <span v-if="project.description">Description: {{ project.description }}</span>
         <span style="font-size: 1rem;">
           Created <span v-if="project.createdAt"> on {{ formatDate(project.createdAt)}}</span>
           by {{ project.creatorId }}
+          <span v-if="canEditProject">
+            <b-button @click="openUpdateProjectModal" variant="outline-secondary"> Edit project <FontAwesomeIcon :icon="faPenToSquare"></FontAwesomeIcon></b-button>
+          </span>
+        </span>
+        <span>
+          Members: <span v-for="(id, idx) in project.memberIds">{{ id }}<span v-if="idx < project.memberIds.length - 1">, </span></span>
         </span>
       </b-col>
       <b-col class="text-right">
@@ -22,6 +30,48 @@
     <b-row class="d-flex flex-column" style="gap: .5rem; margin: 0; padding: 0; height: fit-content; gap: 1rem;">
       <Task v-for="task in projectTasks" :userOptions="userOptions" :task="task" @delete="refresh"></Task>
     </b-row>
+    <b-modal v-model="showUpdateProjectModal" centered title="Edit Project">
+      <b-overlay :show="modalLoading">
+
+        <b-form v-if="updateProject">
+          <b-form-group
+            label="Title"
+            label-cols="3"
+            label-for="project-title-input">
+            <b-form-input
+              id="project-title-input"
+              v-model="updateProject.title">
+            </b-form-input>
+          </b-form-group>
+          <b-form-group
+            label="Description"
+            label-cols="3"
+            label-for="project-desc-input">
+            <b-form-textarea
+              id="project-desc-input"
+              v-model="updateProject.description">
+            </b-form-textarea>
+          </b-form-group>
+          <b-form-group
+            label="Members"
+            label-cols="3"
+            label-for="project-users-input">
+              <b-form-tags
+                input-id="project-users-input"
+                :value="updateProjectUsers"
+              
+                @input="updateProjectUsers = $event">
+                
+              </b-form-tags>
+              {{ updateProjectUsers }}
+          </b-form-group>
+        </b-form>
+      </b-overlay>
+      <template #modal-footer>
+        <b-button @click="closeUpdateProjectModal">Cancel</b-button>
+        <b-button variant="primary" @click="handleUpdateProject">Save changes</b-button>
+      </template>
+    </b-modal>
     <b-modal v-model="showCreateModal" centered title="Create Task">
       <b-form>
           <b-form-group
@@ -80,14 +130,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, Ref, computed, onMounted } from 'vue'
+import { ref, Ref, inject, computed, onMounted, watch } from 'vue'
 import { router } from '../main'
 import Task from './Task.vue'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSquarePlus, faTrashCan } from '@fortawesome/free-regular-svg-icons'
+import { faSquarePlus, faTrashCan, faPenToSquare } from '@fortawesome/free-regular-svg-icons'
 
-import { DropdownOption } from '../types/options.types'
 import { ITask } from '../../../server/models/task.model'
 import { IProject } from '../../../server/models/project.model'
 
@@ -96,7 +145,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['deleteProject'])
+const emit = defineEmits(['deleteProject', 'refresh'])
+
+const user: Ref<any> = inject('user')!
 
 const projectTasks: Ref<ITask[]> = ref([])
 const userOptions = computed(() => {
@@ -105,22 +156,55 @@ const userOptions = computed(() => {
   return [...options, { value: props.project.creatorId , text: props.project.creatorId }]
 })
 
+const project: Ref<IProject> = inject('selectedProject')!
+const updateProject: Ref<Partial<IProject> | null> = ref(null)
+const updateProjectUsers: Ref<string[]> = ref([])
+
+watch(project, async (oldProj: IProject, newProj: IProject) => {
+  if (newProj) {
+    loading.value = true
+    updateProject.value = {
+        title: newProj.title,
+        description: newProj.description,
+        creatorId: newProj.creatorId,
+    }
+    
+    updateProjectUsers.value = newProj.memberIds.slice()
+
+    const res = await fetch(`/api/projects/${project.value._id}/tasks`)
+    projectTasks.value = await res.json()
+
+    loading.value = false
+  }
+})
+
 const showCreateModal = ref(false)
 const showConfirmDeleteModal = ref(false)
+const showUpdateProjectModal = ref(false)
 const loading = ref(false)
 
 const createTask: Ref<any> = ref({
   title: '', description: '', userIds: [], projectId: props.project._id, status: 'not-started', dueDate: new Date()
 })
 
+const canEditProject = computed(() => {
+  return props.project.creatorId === user.value.preferred_username
+})
+
 const openDeleteModal = () => { showConfirmDeleteModal.value = true }
 const closeDeleteModal = () => { showConfirmDeleteModal.value = false }
+
+const openUpdateProjectModal = () => { showUpdateProjectModal.value = true }
+const closeUpdateProjectModal = () => { showUpdateProjectModal.value = false }
 
 const openModal = () => { showCreateModal.value = true }
 const closeModal = () => { showCreateModal.value = false }
 
+const modalLoading = ref(false)
+
 const handleCreateTask = async () => {
   loading.value = true
+  modalLoading.value = true
   const res = await fetch('/api/tasks', {
     method: 'POST',
     headers: {
@@ -130,6 +214,7 @@ const handleCreateTask = async () => {
   })
 
   loading.value = false
+  modalLoading.value = false
 
   if (res.ok) {
     closeModal()
@@ -137,12 +222,33 @@ const handleCreateTask = async () => {
   }
 }
 
+const handleUpdateProject = async () => {
+  try {
+    modalLoading.value = true
+    await fetch(`/api/projects/${props.project._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...updateProject.value,
+        memberIds: updateProjectUsers.value
+      })
+    })
+
+    refresh()
+  } catch (error) {
+    return
+  }
+
+  modalLoading.value = false
+  showUpdateProjectModal.value = false
+}
+
 const handleDeleteProject = async () => {
   const res = await fetch(`/api/projects/${props.project._id}`, {
     method: 'DELETE'
   })
-
-  if (res) router.push({ path: '/projects' })
 }
 
 const formatDate = (date: string | null) => {
@@ -153,13 +259,11 @@ const formatDate = (date: string | null) => {
 }
 
 const refresh = async () => {
-  if (props.project) {
-    loading.value = true
-    const res = await fetch(`/api/projects/${props.project._id}/tasks`)
-
-    projectTasks.value = await res.json()
-    loading.value = false
-  }
+  try {
+    emit('refresh')
+  } catch (error) {
+    
+  } 
 }
 
 onMounted(async () => {

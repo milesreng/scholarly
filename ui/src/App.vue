@@ -53,15 +53,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted, Ref } from 'vue'
+import { ref, provide, onMounted } from 'vue'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faBookOpenReader } from '@fortawesome/free-solid-svg-icons'
-
-interface DropdownOption {
-  value: string,
-  text: string
-}
 
 const user = ref({} as any)
 const mongoUser = ref({} as any)
@@ -81,11 +76,12 @@ onMounted(async () => {
   if (!res.ok) { console.log('user not found'); loading.value = false; return; }
 
   user.value = await res.json()
-  mongoUser.value = user.value._doc
+  // mongoUser.value = user.value._doc
+  console.log(user.value)
 
-  if (user.value.groups.includes('scholarly-admin')) {
-    admin.value = true
-  }
+  // if (user.value.groups.includes('scholarly-admin')) {
+  //   admin.value = true
+  // }
 
   loading.value = false
 })

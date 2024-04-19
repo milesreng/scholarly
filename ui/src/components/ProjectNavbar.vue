@@ -64,11 +64,10 @@
           label="Members"
           label-for="project-users-input"
           label-cols="3">
-          <b-form-select multiple
+          <b-form-tags
             id="project-users-input"
-            v-model="newProject.memberIds"
-            :options="publicUserOptions">
-          </b-form-select>
+            v-model="newProject.memberIds">
+          </b-form-tags>
         </b-form-group>
       </b-form>
       <template #modal-footer v-if="createdProject">
@@ -83,14 +82,13 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, computed, inject, onMounted, provide } from 'vue'
+import { Ref, ref, inject, onMounted } from 'vue'
 import { IProject } from '../../../server/models/project.model'
 import { IUser } from '../../../server/models/user.model'
 import { DropdownOption } from '../types/options.types'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSquarePlus, faTrashCan } from '@fortawesome/free-regular-svg-icons'
-import { faGear } from '@fortawesome/free-solid-svg-icons'
+import { faSquarePlus } from '@fortawesome/free-regular-svg-icons'
 
 interface Props {
   project: IProject | null
@@ -98,9 +96,8 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const user: Ref<any> = inject('user')!
-const mongoUser: Ref<IUser> = inject('mongoUser')!
-const siteAdmin: Ref<boolean> = inject('admin')!
+// const user: Ref<any> = inject('user')!
+// const siteAdmin: Ref<boolean> = inject('admin')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
 const newProject: Ref<any> = ref({
   title: '',
@@ -115,13 +112,13 @@ const modalLoading = ref(false)
 const showModal = ref(false)
 const createdProject: Ref<IProject | null> = ref(null)
 
-const projectAdmin = computed(() => {
-  if (props.project) return props.project.creatorId === user.value.preferred_username
-  return false
-})
+// const projectAdmin = computed(() => {
+//   if (props.project) return props.project.creatorId === user.value.preferred_username
+//   return false
+// })
 
 const openModal = () => { showModal.value = true }
-const closeModal = () => { showModal.value = false }
+// const closeModal = () => { showModal.value = false }
 
 const checkFormValidate = () => {
   var isValidated = true
@@ -137,10 +134,6 @@ const checkFormValidate = () => {
 }
 
 const handleCreateProject = async () => {
-  // if (!checkFormValidate()) return
-
-  console.log(newProject)
-
   modalLoading.value = true
 
   const res = await fetch('/api/projects', {
@@ -157,15 +150,5 @@ const handleCreateProject = async () => {
     createdProject.value = await res.json()
   }
 }
-
-onMounted(async () => {
-  const res = await fetch('/api/user/all')
-
-  console.log(res)
-
-  if (res) publicUserOptions.value = (await res.json()).map((i: IUser) => {
-    return { value: i.oidc_username, text: i.oidc_username }
-  }).filter((j: DropdownOption) => j.value !== mongoUser.value.oidc_username )
-})
 
 </script>

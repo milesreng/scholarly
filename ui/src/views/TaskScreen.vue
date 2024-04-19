@@ -1,6 +1,6 @@
 <template>
   <b-overlay :show="loading" style="min-height: 100vh;">
-    <b-container class="p-4">
+    <b-container class="p-4" v-if="user.preferred_username">
       <b-container>
         <b-row class="d-flex flex-column">
           <div>
@@ -77,6 +77,9 @@
           </template>
       </b-modal>
     </b-container>
+    <b-container v-else>
+      To view this page, please <a href='/api/auth/login'>log in</a> with gitlab.
+    </b-container>
   </b-overlay>
 </template>
 
@@ -89,7 +92,7 @@ import { IProject } from '../../../server/models/project.model'
 import { ITask } from '../../../server/models/task.model'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSquarePlus, faPenToSquare } from '@fortawesome/free-regular-svg-icons'
+import { faSquarePlus } from '@fortawesome/free-regular-svg-icons'
 
 interface Props {
   projectId: string
@@ -97,16 +100,16 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), { projectId: ''})
 
-interface DropdownOption {
-  value: string,
-  text: string
-}
+// interface DropdownOption {
+//   value: string,
+//   text: string
+// }
 
 const user: Ref<any> = inject('user')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
 
 const projectTasks: Ref<ITask[]> = ref([])
-const userOptions: Ref<DropdownOption[]> = ref([])
+// const userOptions: Ref<DropdownOption[]> = ref([])
 
 const modalTask: Ref<ITask | null> = ref(null)
 const createTask: Ref<any> = ref({
@@ -157,13 +160,6 @@ const handleCreateTask = async () => {
   refresh()
 }
 
-const formatDate = (date: string | null) => {
-  if (date) {
-    return new Date(date).toDateString()
-  }
-  return '-'
-}
-
 const refresh =  async () => {
   let tasks;
   if (props.projectId) {
@@ -181,7 +177,7 @@ const refresh =  async () => {
 onMounted(async () => {
   await refresh()
 
-  if (projectTasks.value.length > 0) {
+  if (projectTasks.value && projectTasks.value.length > 0) {
     modalTask.value = projectTasks.value[0]
   }
 })

@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 
 import App from './App.vue'
-import HomeScreen from './views/HomeScreen.vue'
 import ProjectDashboardScreen from './views/ProjectDashboardScreen.vue'
 import TaskScreen from './views/TaskScreen.vue'
 import ProfileScreen from './views/ProfileScreen.vue'

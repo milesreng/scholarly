@@ -6,14 +6,21 @@
     </b-row> -->
     <b-row v-if="selectedProject" class="px-2 d-flex flex-column">
       <!-- <a href="/projects" style="margin-top: -.5rem;">&larr; back to all projects</a> -->
-      <ProjectView :project="selectedProject" @deleteProject="refresh"></ProjectView> 
+      {{ selectedProject }}
+      <ProjectView :project="selectedProject" @deleteProject="refresh" @refresh="refresh"></ProjectView> 
     </b-row>
     <b-row v-else-if="loading">
 
     </b-row>
     <b-row v-else class="d-flex flex-column px-4" style="gap: 1rem; ">
       <b-row v-if="siteAdmin">
-        <VueToggle title="Admin View" name="Admin View" @toggle="setShowAdminView"></VueToggle>
+        <b-button v-if="showAdminView" @click="() => setShowAdminView(false)">
+          Show user view
+        </b-button>
+        <b-button v-else @click="() => setShowAdminView(true)">
+          Show admin view
+        </b-button>
+        <!-- <VueToggle title="Admin View" name="Admin View" @toggle="setShowAdminView"></VueToggle> -->
       </b-row>
       <b-row v-else>
         User Projects
@@ -34,10 +41,9 @@
 <script setup lang="ts">
 import { Ref, ref, provide, inject, computed, onMounted } from 'vue'
 import { IProject } from '../../../server/models/project.model'
-import VueToggle from 'vue-toggle-component'
+// import VueToggle from 'vue-toggle-component'
 
 import ProjectNavbar from '../components/ProjectNavbar.vue'
-import Clock from '../components/Clock.vue'
 import ProjectCard from '../components/ProjectCard.vue'
 import ProjectView from '../components/ProjectView.vue'
 import { DropdownOption } from '../types/options.types'
@@ -54,36 +60,30 @@ const loading: Ref<boolean> = inject('loading')!
 const projectOptions: Ref<DropdownOption[]> = ref([])
 const userProjects: Ref<IProject[]> = ref([])
 const adminProjects: Ref<IProject[]> = ref([])
+const selectedProject: Ref<IProject | null> = ref(null)
 const showAdminView = ref(false)
 
 provide('userProjects', userProjects)
 provide('projectOptions', projectOptions)
-
-const selectedProject = computed(() => {
-  if (props.projectId && !adminProjects) return userProjects.value.find((project) => project._id === props.projectId) || null
-
-  if (props.projectId) return adminProjects.value.find((project) => project._id === props.projectId) || null
-
-  return null
-})
+provide('selectedProject', selectedProject)
 
 const setShowAdminView = (bool: boolean) => {
   showAdminView.value = bool
 }
 
-const formatDate = (date: string | null) => {
-  if (date) {
-    return new Date(date).toLocaleDateString()
-  }
-  return '-'
-}
+// const formatDate = (date: string | null) => {
+//   if (date) {
+//     return new Date(date).toLocaleDateString()
+//   }
+//   return '-'
+// }
 
-const formatTime = (date: string | null) => {
-  if (date) {
-    return new Date(date).toLocaleTimeString()
-  }
-  return '-'
-}
+// const formatTime = (date: string | null) => {
+//   if (date) {
+//     return new Date(date).toLocaleTimeString()
+//   }
+//   return '-'
+// }
 
 
 const refresh = async () => {
@@ -103,8 +103,13 @@ const refresh = async () => {
       adminProjects.value = await res.json()
     }
   }
-}
 
+  if (props.projectId && !adminProjects) {
+    selectedProject.value = userProjects.value.find((project) => project._id === props.projectId) || null
+  } else if (props.projectId) {
+    selectedProject.value = adminProjects.value.find((project) => project._id === props.projectId) || null
+  }
+}
 
 onMounted(async () => {
   refresh()

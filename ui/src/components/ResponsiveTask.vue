@@ -55,18 +55,18 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const formatDate = (date: string | null) => {
+const formatDate = (date: Date | string | null) => {
   if (date) {
     return new Date(date).toLocaleDateString()
   }
   return '-'
 }
 
-const formatTime = (date: string | null) => {
-  if (date) {
-    return new Date(date).toLocaleTimeString()
-  }
-  return '-'
-}
+// const formatTime = (date: string | null) => {
+//   if (date) {
+//     return new Date(date).toLocaleTimeString()
+//   }
+//   return '-'
+// }
 
 </script>

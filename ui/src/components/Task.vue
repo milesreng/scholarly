@@ -163,7 +163,6 @@ import { ITask, taskStatusChoices } from '../../../server/models/task.model'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons'
-import { nextTick } from 'process'
 
 interface Props {
   userOptions: DropdownOption[]
@@ -241,7 +240,7 @@ const handleDeleteTask = async () => {
 const openTaskModal = () => { showTaskModal.value = true }
 const closeTaskModal = () => { showTaskModal.value = false }
 
-const openDeleteModal = () => { showConfirmDeleteModal.value = true }
+// const openDeleteModal = () => { showConfirmDeleteModal.value = true }
 const closeDeleteModal = () => { showConfirmDeleteModal.value = false }
 
 const formatDate = (date: Date | string | null) => {
