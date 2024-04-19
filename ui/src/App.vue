@@ -46,13 +46,14 @@
         </div>
       </div>
     </b-navbar>
-    <router-view />
+    <b-overlay :show="loading" style="min-height: 100vh; padding: 0; margin: 0;">
+      <router-view />
+    </b-overlay>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, provide, onMounted, Ref } from 'vue'
-import { IProject } from '../../server/models/project.model'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faBookOpenReader } from '@fortawesome/free-solid-svg-icons'
@@ -64,17 +65,14 @@ interface DropdownOption {
 
 const user = ref({} as any)
 const mongoUser = ref({} as any)
-const userProjects: Ref<IProject[]> = ref([])
 const admin = ref(false)
 
-const projectOptions: Ref<DropdownOption[]> = ref([])
 const loading = ref(false)
 
 provide('user', user)
 provide('admin', admin)
 provide('mongoUser', mongoUser)
-provide('userProjects', userProjects)
-provide('userLoading', loading)
+provide('loading', loading)
 
 onMounted(async () => { 
   loading.value = true
@@ -89,18 +87,7 @@ onMounted(async () => {
     admin.value = true
   }
 
-  const projects = await fetch('/api/user/projects')
-  if (!res.ok) { console.log('no projects found'); return; }
-
-  userProjects.value = await projects.json()
-  console.log(userProjects.value)
-  projectOptions.value = userProjects.value.map((project: IProject) => {
-    return { value: project._id, text: project.title }
-  })
-
   loading.value = false
-  
-  console.log('User:', user.value)
 })
 
 const handleLogout = async () => {
@@ -111,7 +98,6 @@ const handleLogout = async () => {
   if (res.ok) {
     user.value = {}
     mongoUser.value = {}
-    userProjects.value = []
   }
 }
 

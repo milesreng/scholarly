@@ -1,12 +1,6 @@
 <template>
   <b-overlay :show="loading" style="min-height: 100vh;">
-    <div class="sub-navbar" style="margin: 0; width: 100%;">
-      <ProjectNavbar :project="selectedProject"></ProjectNavbar>
-    </div>
     <b-container class="p-4">
-      <b-row style="align-items: end">
-        <Clock></Clock>
-      </b-row>
       <b-container>
         <b-row class="d-flex flex-column">
           <div>
@@ -88,8 +82,6 @@
 
 <script setup lang="ts">
 import { Ref, ref, computed, inject, onMounted } from 'vue'
-import Clock from '../components/Clock.vue'
-import ProjectNavbar from '../components/ProjectNavbar.vue'
 import Task from '../components/Task.vue'
 import ResponsiveTask from '../components/ResponsiveTask.vue'
 

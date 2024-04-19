@@ -43,6 +43,16 @@
   margin: auto;
   /* color: #f7fafa; */
 }
+
+.project {
+  transition: all 100ms linear;
+}
+
+.project:hover {
+  background-color: #ece8e8;
+  cursor: pointer;
+}
+
 /* 
 .navbar-link:hover {
   color: #d5dede;

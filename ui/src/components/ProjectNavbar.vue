@@ -26,11 +26,14 @@
         </b-dropdown-item>
       </b-dropdown>
     </div>
-    <div class="d-flex flex-row align-items-center" style="gap: 2rem;" v-if="props.project">
-      <FontAwesomeIcon :icon="faGear"></FontAwesomeIcon>
-    </div>
-    <b-modal v-model="showModal" title="Create New Project" centered content-class="font-roboto">
-      <b-form>
+    <!-- <div class="d-flex flex-row align-items-center" style="gap: 2rem;" v-if="props.project">
+      <FontAwesomeIcon :icon="faTrashCan"></FontAwesomeIcon>
+    </div> -->
+    <b-modal v-model="showModal" title="Create New Project" centered>
+      <b-container v-if="createdProject">
+        Your project has been successfully created.
+      </b-container>
+      <b-form v-else>
         <b-form-group
           id="project-title-group"
           label="Title"
@@ -68,7 +71,10 @@
           </b-form-select>
         </b-form-group>
       </b-form>
-      <template #modal-footer>
+      <template #modal-footer v-if="createdProject">
+        <b-button variant="primary" :href="'/projects/' + createdProject._id">Go to project</b-button>
+      </template>
+      <template #modal-footer v-else>
         <b-button @click="closeModal">Cancel</b-button>
         <b-button variant="primary" @click="handleCreateProject">Create project</b-button>
       </template>
@@ -77,13 +83,13 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, computed, inject, onMounted } from 'vue'
+import { Ref, ref, computed, inject, onMounted, provide } from 'vue'
 import { IProject } from '../../../server/models/project.model'
 import { IUser } from '../../../server/models/user.model'
 import { DropdownOption } from '../types/options.types'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSquarePlus } from '@fortawesome/free-regular-svg-icons'
+import { faSquarePlus, faTrashCan } from '@fortawesome/free-regular-svg-icons'
 import { faGear } from '@fortawesome/free-solid-svg-icons'
 
 interface Props {
@@ -93,7 +99,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const user: Ref<any> = inject('user')!
-const siteAdmin: Ref<any> = inject('admin')!
+const mongoUser: Ref<IUser> = inject('mongoUser')!
+const siteAdmin: Ref<boolean> = inject('admin')!
 const userProjects: Ref<IProject[]> = inject('userProjects')!
 const newProject: Ref<any> = ref({
   title: '',
@@ -106,6 +113,7 @@ const publicUserOptions: Ref<DropdownOption[]> = ref([])
 
 const modalLoading = ref(false)
 const showModal = ref(false)
+const createdProject: Ref<IProject | null> = ref(null)
 
 const projectAdmin = computed(() => {
   if (props.project) return props.project.creatorId === user.value.preferred_username
@@ -129,19 +137,25 @@ const checkFormValidate = () => {
 }
 
 const handleCreateProject = async () => {
-  if (!checkFormValidate()) return
+  // if (!checkFormValidate()) return
+
+  console.log(newProject)
 
   modalLoading.value = true
 
-  await fetch('/api/projects', {
+  const res = await fetch('/api/projects', {
     headers: {
       'Content-Type': 'application/json',
     },
-    method: 'POST'
+    method: 'POST',
+    body: JSON.stringify(newProject.value)
   })
 
   modalLoading.value = false
-  showModal.value = false
+  
+  if (res.ok) {
+    createdProject.value = await res.json()
+  }
 }
 
 onMounted(async () => {
@@ -149,9 +163,9 @@ onMounted(async () => {
 
   console.log(res)
 
-  if (res) publicUserOptions.value = (await res.json()).map((user: IUser) => {
-    return { value: user.oidc_username, text: user.oidc_username }
-  })
+  if (res) publicUserOptions.value = (await res.json()).map((i: IUser) => {
+    return { value: i.oidc_username, text: i.oidc_username }
+  }).filter((j: DropdownOption) => j.value !== mongoUser.value.oidc_username )
 })
 
 </script>

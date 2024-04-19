@@ -1,15 +1,17 @@
 <template>
   <ProjectNavbar :project="selectedProject"></ProjectNavbar>
-  <b-container v-if="userProjects">
-    <b-row>
+  <b-container v-if="userProjects" style="padding: 1rem 0;">
+    <!-- <b-row>
       <Clock></Clock>
+    </b-row> -->
+    <b-row v-if="selectedProject" class="px-2 d-flex flex-column">
+      <!-- <a href="/projects" style="margin-top: -.5rem;">&larr; back to all projects</a> -->
+      <ProjectView :project="selectedProject" @deleteProject="refresh"></ProjectView> 
     </b-row>
-    <b-row v-if="selectedProject" class="px-2">
-      <span style="font-size: 1.5rem;">
-        Project: {{ selectedProject.title }}
-      </span>
+    <b-row v-else-if="loading">
+
     </b-row>
-    <b-row v-else class="d-flex flex-column px-4" style="gap: 1rem;">
+    <b-row v-else class="d-flex flex-column px-4" style="gap: 1rem; ">
       <b-row v-if="siteAdmin">
         <VueToggle title="Admin View" name="Admin View" @toggle="setShowAdminView"></VueToggle>
       </b-row>
@@ -17,10 +19,10 @@
         User Projects
       </b-row>
       <b-row v-if="siteAdmin && adminProjects && showAdminView" class="d-flex flex-column" style="gap: 2rem">
-        <Project v-for="project in adminProjects" :project="project"></Project>
+        <ProjectCard v-for="project in adminProjects" :project="project"></ProjectCard>
       </b-row>
       <b-row v-else class="d-flex flex-column" style="gap: 2rem">
-        <Project v-for="project in userProjects" :project="project"></Project>
+        <ProjectCard v-for="project in userProjects" :project="project"></ProjectCard>
       </b-row>
     </b-row>
   </b-container>
@@ -30,13 +32,15 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, inject, computed, onMounted } from 'vue'
+import { Ref, ref, provide, inject, computed, onMounted } from 'vue'
 import { IProject } from '../../../server/models/project.model'
 import VueToggle from 'vue-toggle-component'
 
 import ProjectNavbar from '../components/ProjectNavbar.vue'
 import Clock from '../components/Clock.vue'
-import Project from '../components/Project.vue'
+import ProjectCard from '../components/ProjectCard.vue'
+import ProjectView from '../components/ProjectView.vue'
+import { DropdownOption } from '../types/options.types'
 
 interface Props {
   projectId: string
@@ -45,13 +49,21 @@ interface Props {
 const props = defineProps<Props>()
 
 const siteAdmin: Ref<boolean> = inject('admin')!
-const userProjects: Ref<IProject[]> = inject('userProjects')!
+const loading: Ref<boolean> = inject('loading')!
 
+const projectOptions: Ref<DropdownOption[]> = ref([])
+const userProjects: Ref<IProject[]> = ref([])
 const adminProjects: Ref<IProject[]> = ref([])
 const showAdminView = ref(false)
 
+provide('userProjects', userProjects)
+provide('projectOptions', projectOptions)
+
 const selectedProject = computed(() => {
-  if (props.projectId) return userProjects.value.find((project) => project._id === props.projectId) || null
+  if (props.projectId && !adminProjects) return userProjects.value.find((project) => project._id === props.projectId) || null
+
+  if (props.projectId) return adminProjects.value.find((project) => project._id === props.projectId) || null
+
   return null
 })
 
@@ -59,7 +71,31 @@ const setShowAdminView = (bool: boolean) => {
   showAdminView.value = bool
 }
 
-onMounted(async () => {
+const formatDate = (date: string | null) => {
+  if (date) {
+    return new Date(date).toLocaleDateString()
+  }
+  return '-'
+}
+
+const formatTime = (date: string | null) => {
+  if (date) {
+    return new Date(date).toLocaleTimeString()
+  }
+  return '-'
+}
+
+
+const refresh = async () => {
+  const projects = await fetch('/api/user/projects')
+  if (!projects.ok) { console.log('no projects found'); return; }
+
+  userProjects.value = await projects.json()
+  console.log(userProjects.value)
+  projectOptions.value = userProjects.value.map((project: IProject) => {
+    return { value: project._id, text: project.title }
+  })
+
   if (siteAdmin) {
     const res = await fetch('/api/projects/')
 
@@ -67,6 +103,11 @@ onMounted(async () => {
       adminProjects.value = await res.json()
     }
   }
+}
+
+
+onMounted(async () => {
+  refresh()
 })
 
 </script>
