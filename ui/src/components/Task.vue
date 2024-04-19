@@ -1,13 +1,20 @@
 <template>
-  <div style="width: 100%; height: fit-content;" class="d-flex flex-row justify-content-center">
-    <b-col cols="0" md="2" class="d-none d-md-flex">
-      <span v-if="props.task.dueDate && isLate" style="color: red;">
+  <div style="width: 100%; height: fit-content;" class="d-flex flex-column flex-md-row justify-content-center shadow border-top">
+    <b-col cols="12" md="2" class="d-flex">
+      <span v-if="props.task.dueDate && isLate" style="color: red;" class="align-items-center m-auto text-center">
         Due {{ formatDate(props.task.dueDate) }}
       </span>
-      <span v-else-if="props.task.dueDate">
+      <span v-else-if="props.task.dueDate && props.task.status === 'complete'" class="align-items-center m-auto text-center">
+        <span style="text-decoration: line-through;" class="align-items-center text-center">
+          Due {{ formatDate(props.task.dueDate) }}
+        </span>
+        <br>
+        Complete
+      </span>
+      <span v-else-if="props.task.dueDate" class="align-items-center m-auto text-center">
         Due {{ formatDate(props.task.dueDate) }}
       </span>
-      <span v-else>
+      <span v-else class="align-items-center m-auto text-center">
         No due date specified
       </span>
     </b-col>
@@ -73,11 +80,22 @@
                       :options="props.userOptions">
                     </b-form-select>
                   </b-form-group>
+                  <b-form-group
+                    label="Status"
+                    label-for="update-status-input"
+                    label-cols="3">
+                    <b-form-select
+                      id="update-status-input"
+                      v-model="updateStatus"
+                      :options="taskStatusChoices">
+                      
+                    </b-form-select>
+                  </b-form-group>
                 </b-form>
                 <template #modal-footer>
                   <span class="d-flex flex-row justify-content-between" style="width: 100%;">
                     <span v-if="canEdit">
-                      <b-button variant="danger" @click="handleDeleteTask">
+                      <b-button variant="danger" @click="handleConfirmDelete">
                         <FontAwesomeIcon :icon="faTrashCan" style="margin: auto;"></FontAwesomeIcon>
                       </b-button>
                     </span>
@@ -88,21 +106,20 @@
                   </span>
                 </template>
               </b-modal>
+              <b-modal v-model="showConfirmDeleteModal" centered size="sm">
+                {{ showConfirmDeleteModal }}
+                Are you sure you want to delete this task?
+                <template #modal-footer>
+                  <b-button @click="closeDeleteModal">Cancel</b-button>
+                  <b-button variant="danger" @click="handleDeleteTask">Yes</b-button>
+                </template>
+              </b-modal>
             </div>
           </div>
       </b-row>
-
-      <div class="d-flex d-md-none"> 
-              <span v-if="props.task.dueDate && isLate" style="color: red;">
-                Due {{ formatDate(props.task.dueDate) }}
-              </span>
-              <span v-else-if="props.task.dueDate">
-                Due {{ formatDate(props.task.dueDate) }}
-              </span>
-              <span v-else>
-                No due date specified
-              </span>
-            </div>
+      <b-row>
+        Status: {{ props.task.status }}
+      </b-row>
       <b-row>
         Created by&nbsp;<span style="text-decoration: underline;">{{ props.task.creatorId }}</span>
         <span v-if="props.task.createdAt">
@@ -146,6 +163,7 @@ import { ITask, taskStatusChoices } from '../../../server/models/task.model'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faPenToSquare, faTrashCan } from '@fortawesome/free-regular-svg-icons'
+import { nextTick } from 'process'
 
 interface Props {
   userOptions: DropdownOption[]
@@ -153,7 +171,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['refresh'])
+const emit = defineEmits(['refresh', 'delete'])
 
 const user: Ref<any> = inject('user')!
 
@@ -164,6 +182,7 @@ const updateStatus = ref('')
 const updateDueDate = ref(new Date())
 const updateUsers: Ref<string[]> = ref([])
 const showTaskModal = ref(false)
+const showConfirmDeleteModal = ref(false)
 
 const isLate = computed(() => {
   if (!props.task.dueDate) return false
@@ -176,30 +195,15 @@ const isLate = computed(() => {
 const canEdit = computed(() => {
   return props.task.creatorId === user.value.preferred_username
 })
-const canUpdateStatus = computed(() => {
-  return props.task.creatorId === user.value.preferred_username || props.task.userIds.includes(user.value.preferred_username)
-})
 
-const handleUpdateStatus = async () => {
-  if (updateStatus) {
-    const res = await fetch(`/api/tasks/${props.task._id}/status`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      method: 'PUT',
-      body: JSON.stringify({ status: updateStatus.value })
-    })
-
-    if (res.ok) {
-      emit('refresh')
-      refresh()
-    }
-  }
+const handleConfirmDelete = () => {
+  showTaskModal.value = false
+  showConfirmDeleteModal.value = true
 }
 
 const handleUpdateTask = async () => {
-  if (updateTitle && updateDesc && updateUsers && updateDueDate) {
-    const task = { title: updateTitle.value, description: updateDesc.value, userIds: updateUsers.value, dueDate: updateDueDate.value }
+  if (updateTitle && updateDesc && updateUsers && updateDueDate && updateStatus) {
+    const task = { title: updateTitle.value, description: updateDesc.value, userIds: updateUsers.value, dueDate: updateDueDate.value, status: updateStatus.value }
     const res = await fetch(`/api/tasks/${props.task._id}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -210,28 +214,35 @@ const handleUpdateTask = async () => {
 
     if (res.ok) {
       showTaskModal.value = false
-      emit('refresh')
-      refresh()
     }
+
+    emit('refresh')
+    refresh()
   }
 }
 
 const handleDeleteTask = async () => {
-  const res = await fetch(`/api/tasks/${props.task._id}`, {
-    method: 'DELETE'
-  })
+  try {
 
-  if (res) {
-    refresh()
-    emit('refresh')
+    const res = await fetch(`/api/tasks/${props.task._id}`, {
+      method: 'DELETE'
+    })
+
+    if (!res.ok) console.log(res)
+    
+  } catch (error) {
+    return
   }
+
+  showConfirmDeleteModal.value = false
+  emit('refresh')
 }
 
-const openTaskModal = () => { 
-  showTaskModal.value = true 
-}
-
+const openTaskModal = () => { showTaskModal.value = true }
 const closeTaskModal = () => { showTaskModal.value = false }
+
+const openDeleteModal = () => { showConfirmDeleteModal.value = true }
+const closeDeleteModal = () => { showConfirmDeleteModal.value = false }
 
 const formatDate = (date: Date | string | null) => {
   if (date) {

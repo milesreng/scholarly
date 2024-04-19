@@ -1,5 +1,6 @@
 <template>
   <b-overlay :show="loading">
+  <b-button @click="refresh">Refresh</b-button>
   <b-container v-if="project" class="d-flex flex-column pb-4" style="gap: .5rem;">
     <b-row style="border-bottom: 1px solid grey; width: 100%;" class="d-flex flex-row align-items-center">
       <b-col class="p-2 d-flex flex-column" cols="10">
@@ -19,7 +20,7 @@
       <FontAwesomeIcon :icon="faSquarePlus" class="pr-2"></FontAwesomeIcon> Create a task
     </b-row>
     <b-row class="d-flex flex-column" style="gap: .5rem; margin: 0; padding: 0; height: fit-content; gap: 1rem;">
-      <Task v-for="task in projectTasks" :userOptions="userOptions" :task="task" @refresh="refresh"></Task>
+      <Task v-for="task in projectTasks" :userOptions="userOptions" :task="task" @delete="refresh"></Task>
     </b-row>
     <b-modal v-model="showCreateModal" centered title="Create Task">
       <b-form>
@@ -153,9 +154,11 @@ const formatDate = (date: string | null) => {
 
 const refresh = async () => {
   if (props.project) {
+    loading.value = true
     const res = await fetch(`/api/projects/${props.project._id}/tasks`)
 
     projectTasks.value = await res.json()
+    loading.value = false
   }
 }
 

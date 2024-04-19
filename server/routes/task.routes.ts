@@ -4,10 +4,6 @@ import { taskController } from '../controllers/task.controller'
 
 const router = express.Router()
 
-// @route   PUT api/tasks/:id/status
-// @desc    Update task status
-router.put('/:id/status', checkAuth, taskController.updateTaskStatus)
-
 // @route   PUT api/tasks/:id
 // @desc    Update task
 router.put('/:id', checkAuth, taskController.updateTask)
