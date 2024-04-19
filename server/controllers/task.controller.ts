@@ -32,15 +32,64 @@ export const taskController = {
     const newTask = new Task({
       title: taskContent.title,
       description: taskContent.description,
-      status: taskContent.status || 'not-started',
+      status: taskContent.status || false,
       dueDate: taskContent.dueDate,
       creatorId: (req.user as OIDCUser)?.preferred_username,
       userIds: taskContent.userIds,
-      projectId: new ObjectId(taskContent.projectId)
+      projectId: new mongoose.Types.ObjectId(taskContent.projectId)
     })
 
     await newTask.save()
 
     return res.status(200).json(newTask)
+  },
+  updateTask: async (req: Request, res: Response) => {
+    let taskId = req.params.id
+    const updateTask = req.body
+
+    const task = await Task.findById(taskId)
+
+    if ((req.user as OIDCUser)?.preferred_username !== task.creatorId) {
+      return res.status(401).send('unauthorized')
+    }
+
+    if (task) {
+      task.title = updateTask.title
+      task.description = updateTask.description
+      task.userIds = updateTask.userIds
+      task.dueDate = updateTask.dueDate
+    }
+
+    await task.save()
+
+    return res.status(200).json(task)
+  },
+  updateTaskStatus: async (req: Request, res: Response) => {
+    let taskId = req.params.id
+    let status = req.body.status
+
+    const task = await Task.findById(taskId)
+
+    if (!task || task.creatorId !== (req.user as OIDCUser)?.preferred_username || !task.userIds.includes((req.user as OIDCUser)?.preferred_username)) {
+      return res.status(401)
+    }
+
+    const result = await Task.updateOne(
+      { _id: taskId },
+      { $set: { status }}
+    )
+
+    return res.status(200).json(result)
+  },
+  deleteTask: async (req: Request, res: Response) => {
+    const task = await Task.findById(req.params.id)
+
+    if (task.creatorId !== (req.user as OIDCUser)?.preferred_username) {
+      return res.status(401)
+    }
+
+    await Task.findByIdAndDelete(req.params.id)
+
+    return res.status(200)
   }
 }
