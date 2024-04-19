@@ -9,26 +9,19 @@
         Project: {{ selectedProject.title }}
       </span>
     </b-row>
-    <b-row v-else>
-      <div v-if="siteAdmin">
-        <span v-if="showAdminView" @click="() => setShowAdminView(false)">
-          Show all
-        </span>
-        <span v-else @click="() => setShowAdminView(true)">
-          Show admin
-        </span>
-      </div>
-      <div v-else>
+    <b-row v-else class="d-flex flex-column px-4" style="gap: 1rem;">
+      <b-row v-if="siteAdmin">
+        <VueToggle title="Admin View" name="Admin View" @toggle="setShowAdminView"></VueToggle>
+      </b-row>
+      <b-row v-else>
         User Projects
-      </div>
-      <div>
-        <div v-if="siteAdmin && adminProjects && showAdminView">
-          {{ adminProjects }}
-        </div>
-        <div v-else>
-          {{  userProjects }}
-        </div>
-      </div>
+      </b-row>
+      <b-row v-if="siteAdmin && adminProjects && showAdminView" class="d-flex flex-column" style="gap: 2rem">
+        <Project v-for="project in adminProjects" :project="project"></Project>
+      </b-row>
+      <b-row v-else class="d-flex flex-column" style="gap: 2rem">
+        <Project v-for="project in userProjects" :project="project"></Project>
+      </b-row>
     </b-row>
   </b-container>
   <div v-else>
@@ -39,9 +32,11 @@
 <script setup lang="ts">
 import { Ref, ref, inject, computed, onMounted } from 'vue'
 import { IProject } from '../../../server/models/project.model'
+import VueToggle from 'vue-toggle-component'
 
 import ProjectNavbar from '../components/ProjectNavbar.vue'
 import Clock from '../components/Clock.vue'
+import Project from '../components/Project.vue'
 
 interface Props {
   projectId: string
