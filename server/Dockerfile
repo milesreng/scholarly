@@ -3,6 +3,10 @@ FROM library/node:18-alpine as esbuild
 WORKDIR /home/node/app
 COPY *.js* ./
 COPY *.ts* ./
+COPY routes ./routes
+COPY models ./models
+COPY middleware ./middleware
+COPY controllers ./controllers
 RUN npm i
 RUN ls -al && npm run build
 

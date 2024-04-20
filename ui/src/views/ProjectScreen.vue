@@ -10,7 +10,7 @@
       <b-row v-if="project.description">
         {{ project.description }}
       </b-row>
-      <b-row>
+      <b-row data-testid="project-creator">
         Created by {{ project.creatorId }}
       </b-row>
       <b-row>
@@ -34,26 +34,30 @@
       <b-form v-if="updateProject">
         <b-form-group
           label="Title"
-          label-cols="3">
+          label-cols="3"
+          label-for="update-project-title-input">
           <b-form-input
+            id="update-project-title-input"
             v-model="updateProject.title">
-
           </b-form-input>
         </b-form-group>
         <b-form-group
           label="Description"
-          label-cols="3">
+          label-cols="3"
+          label-for="update-project-desc-input">
           <b-form-textarea
+            id="update-project-desc-input"
             v-model="updateProject.description">
-
           </b-form-textarea>
         </b-form-group>
         <b-form-group
           label="Members"
-          label-cols="3">
+          label-cols="3"
+          label-for="update-project-members-input">
           <b-form-tags
             :value="updateUsers"
-            @input="updateUsers = $event">
+            @input="updateUsers = $event"
+            id="update-project-members-input">
           </b-form-tags>
         </b-form-group>
       </b-form>

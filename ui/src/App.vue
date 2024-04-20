@@ -22,18 +22,19 @@
               <span style="font-size: .9rem;">@{{ user.preferred_username }}</span>
             </b-dropdown-item>
             <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item style="text-align: right;" href="/projects">
+            <!-- <b-dropdown-item style="text-align: right;" href="/projects">
                 Projects
             </b-dropdown-item>
-            <b-dropdown-divider></b-dropdown-divider>
+            <b-dropdown-divider></b-dropdown-divider> -->
             <b-dropdown-item style="text-align: right;" @click="handleLogout">
               Logout
             </b-dropdown-item>
           </b-dropdown>
         </div>
         <div v-else class="d-flex" style="gap: 2rem;">  
-          <a style="margin: auto; font-size: 1.2rem; color: white;" 
-            href='/api/auth/login'>Login</a>
+          <a style="margin: auto; color: black;" @click="openLoginModal">Login via DS</a>
+          <a style="margin: auto; color: black;" 
+            href='/api/auth/login'>Login via Gitlab</a>
           <!-- <router-link :to="{ name: 'login' }" class="navbar-link">
             Log in
           </router-link> -->
@@ -43,6 +44,46 @@
         </div>
       </div>
     </b-navbar>
+    <b-modal v-model="showLoginModal" centered>
+      <b-form>
+        <b-form-group
+          label-for="login-key-input"
+          label="Login Key"
+          label-cols="3">
+          <b-form-input
+            id="login-key-input"
+            type="password"
+            v-model="key">
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          label-for="login-user-input"
+          label="Username"
+          label-cols="3">
+          <b-form-input
+            id="login-user-input"
+            v-model="username">
+          </b-form-input>
+        </b-form-group>
+        <b-form-group
+          label-for="login-role-input"
+          label="Role"
+          label-cols="3">
+          <b-form-input
+            id="login-role-input"
+            v-model="role">
+          </b-form-input>
+        </b-form-group>
+      </b-form>
+      <template #modal-footer>
+        <div>
+          <b-button variant="outline-secondary">Cancel</b-button>
+          <b-button variant="info" class="ml-2" :href="'/api/auth/login?key=' + key + '&user=' + username + '&role=' + role">
+            Log in
+          </b-button>
+        </div>
+      </template>
+    </b-modal>
     <b-overlay :show="loading" style="min-height: 100vh; padding: 0; margin: 0;">
       <router-view />
     </b-overlay>
@@ -60,10 +101,18 @@ const user = ref({} as any)
 const admin = ref(false)
 
 const loading = ref(false)
+const showLoginModal = ref(false)
+
+const openLoginModal = () => { showLoginModal.value = true }
+// const closeLoginModal = () => { showLoginModal.value = false }
 
 provide('user', user)
 provide('admin', admin)
 provide('loading', loading)
+
+const key = ref('')
+const username = ref('')
+const role = ref('')
 
 onMounted(async () => { 
   loading.value = true

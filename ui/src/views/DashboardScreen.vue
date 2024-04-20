@@ -1,6 +1,6 @@
 <template>
   <b-overlay :show="loading">
-    <b-container>
+    <b-container v-if="user.name">
       <b-row class="py-4" style="font-size: 2rem;">
         Hi, {{ user.name }}
       </b-row>
@@ -8,6 +8,9 @@
         <b-row class="" style="font-size: 1.4rem;">
           Your Projects
         </b-row>
+        <div @click="openCreateProjectModal">
+            <FontAwesomeIcon class="pr-2" :icon="faSquarePlus"></FontAwesomeIcon> Create a new project
+        </div>
         <b-row v-if="userProjects" class="d-flex flex-column" style="gap: 1rem;">
           <div v-if="admin" class="my-2">
             <b-button v-if="adminView" @click="() => toggleAdminView(false)" variant="outline-info">
@@ -16,9 +19,6 @@
             <b-button v-else @click="() => toggleAdminView(true)" variant="outline-secondary">
               Show admin view
             </b-button>
-          </div>
-          <div @click="openCreateProjectModal">
-            <FontAwesomeIcon class="pr-2" :icon="faSquarePlus"></FontAwesomeIcon> Create a new project
           </div>
           <div v-if="admin && adminView" class="d-flex flex-column" style="gap: 1rem;">
             <Project v-for="project in adminProjects"  :project="project"></Project>
@@ -36,29 +36,37 @@
         </b-row>
       </b-container>
     </b-container>
+    <b-container v-else>
+      You must log in to view this page.
+    </b-container>
     <b-modal v-model="showCreateProjectModal" centered title="Create Project">
       <b-overlay :show="modalLoading">
         <b-form>
           <b-form-group
             label="Title"
-            label-cols="3">
+            label-cols="3"
+            label-for="new-project-title-input">
             <b-form-input
+              id="new-project-title-input"
               v-model="newProject.title">
-
             </b-form-input>
           </b-form-group>
           <b-form-group
             label="Description"
-            label-cols="3">
+            label-cols="3"
+            label-for="new-project-desc-input">
             <b-form-textarea
+              id="new-project-desc-input"
               v-model="newProject.description">
 
             </b-form-textarea>
           </b-form-group>
           <b-form-group
             label="Members"
-            label-cols="3">
+            label-cols="3"
+            label-for="new-project-members-input">
             <b-form-tags
+              id="new-project-title-input"
               :value="projectUsers"
               @input="projectUsers = $event">
             </b-form-tags>

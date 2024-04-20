@@ -11,6 +11,7 @@ import session from 'express-session'
 import expressPinoLogger from 'express-pino-logger'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
+import { Strategy as CustomStrategy } from 'passport-custom'
 
 import userRoutes from './routes/user.routes'
 import taskRoutes from './routes/task.routes'
@@ -19,9 +20,18 @@ import { Collection } from 'mongoose'
 
 dotenv.config()
 
-const client = new MongoClient(process.env.MONGODB_URI)
-let db: Db
-let tasks: Collection
+const HOST = process.env.HOST || '127.0.0.1'
+const ADMIN_GROUP_ID = 'scholarly-admin'
+const DISABLE_SECURITY = process.env.DISABLE_SECURITY
+
+const passportStrategies = [
+  ...(DISABLE_SECURITY ? ['disable-security'] : []),
+  'oidc',
+]
+
+// const client = new MongoClient(process.env.MONGODB_URI)
+// let db: Db
+// let tasks: Collection
 
 const app = express()
 const port = process.env.PORT || 5174
@@ -35,7 +45,7 @@ export const logger = pino({
   }
 })
 
-// app.use(expressPinoLogger({ logger }))
+app.use(expressPinoLogger({ logger }))
 
 app.use(cors({
   origin: 'http://127.0.0.1:3001',
@@ -67,13 +77,13 @@ passport.deserializeUser((user: any, done) => {
   done(null, user)
 })
 
-app.get('/api/auth/login', passport.authenticate('oidc', {
+app.get('/api/auth/login', passport.authenticate(passportStrategies, {
   successReturnToOrRedirect: '/'
 }))
 
-app.get('/api/auth/callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://127.0.0.1:3001/',
-  failureRedirect: 'http://127.0.0.1:3001',
+app.get('/api/auth/callback', passport.authenticate(passportStrategies, {
+  successReturnToOrRedirect: 'http://127.0.0.1:31000/',
+  failureRedirect: 'http://127.0.0.1:31000',
 }))
 
 app.post('/api/auth/logout', (req: Request, res: Response, next: (err: any) => void) => {
@@ -93,13 +103,22 @@ mongoose.set('strictQuery', true)
 mongoose.connect(process.env.MONGODB_URI).then(async () => {
   logger.info('Connected to MongoDB')
 
+  passport.use('disable-security', new CustomStrategy((req, done) => {
+    if (req.query.key !== DISABLE_SECURITY) {
+      console.log('you must supply ?key=' + DISABLE_SECURITY + ' to log in via DISABLE_SECURITY')
+      done(null, false)
+    } else {
+      done(null, { name: req.query.user, preferred_username: req.query.user, roles: [].concat(req.query.role) })
+    }
+  }))
+
   const issuer = await Issuer.discover('https://coursework.cs.duke.edu/')
   const client = new issuer.Client({ client_id: process.env.CLIENT_ID, client_secret: process.env.CLIENT_SECRET })
 
   const params = {
     scope: 'openid profile email',
     nonce: generators.nonce(),
-    redirect_uri: 'http://127.0.0.1:5174/api/auth/callback',
+    redirect_uri: `http://${HOST}:31000/api/auth/callback`,
     state: generators.state(),
 
     // forces a fresh login screen every time
@@ -111,20 +130,14 @@ mongoose.connect(process.env.MONGODB_URI).then(async () => {
 
     // const existUser = await MongoUser.findOne({ oidc_username: userInfo.preferred_username })
 
-    // console.log('existUser', existUser)
-
     // if (!existUser) {
     //   logger.info('user does not exist')
-    //   const user = new MongoUser({
+    //   const user = await MongoUser.create({
     //     oidc_username: userInfo.preferred_username,
     //     display_name: userInfo.name || null
     //   })
-
-    //   await user.save()
     // }
 
-    // role-based access control:
-    const ADMIN_GROUP_ID = 'scholarly-admin'
     userInfo.roles = userInfo.groups.includes(ADMIN_GROUP_ID) ? ['admin'] : ['member']
     return done(null, userInfo)
   }
