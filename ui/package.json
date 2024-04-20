@@ -19,6 +19,7 @@
     "@vue/compat": "^3.4.15",
     "bootstrap-vue": "^2.23.1",
     "googleapis": "^134.0.0",
+    "mongoose": "^8.3.2",
     "passport-google-oauth2": "^0.2.0",
     "validator": "^13.11.0",
     "vue": "^3.4.15",

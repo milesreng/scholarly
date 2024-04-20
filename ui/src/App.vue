@@ -3,10 +3,7 @@
     <b-navbar toggleable="lg">
       <div class="d-flex justify-content-between" style="width: 100%; color: white; text-decoration: none; ">
         <b-navbar-brand class="light-text">
-          <router-link :to="{ name: 'dashboard' }" class="navbar-link">
-            <!-- <span>
-              <Icon name="clipboard-list-solid" />
-            </span> -->
+          <router-link :to="{ name: 'dashboard' }" class="navbar-link" style="color: black;">
             <span style="font-size: 1.7rem;">
               <FontAwesomeIcon :icon="faBookOpenReader" />
               Scholarly
@@ -19,7 +16,7 @@
               <!-- <img :src="user.picture" alt="" class="rounded-circle" style="width: 30%;"> -->
               {{  user.preferred_username }}
             </template>
-            <b-dropdown-item style="text-align: right;" href="/profile">
+            <b-dropdown-item style="text-align: right;">
               {{ user.name }}
               <br/> 
               <span style="font-size: .9rem;">@{{ user.preferred_username }}</span>
@@ -57,16 +54,15 @@ import { ref, provide, onMounted } from 'vue'
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faBookOpenReader } from '@fortawesome/free-solid-svg-icons'
+import { router } from './main';
 
 const user = ref({} as any)
-const mongoUser = ref({} as any)
 const admin = ref(false)
 
 const loading = ref(false)
 
 provide('user', user)
 provide('admin', admin)
-provide('mongoUser', mongoUser)
 provide('loading', loading)
 
 onMounted(async () => { 
@@ -76,12 +72,10 @@ onMounted(async () => {
   if (!res.ok) { console.log('user not found'); loading.value = false; return; }
 
   user.value = await res.json()
-  // mongoUser.value = user.value._doc
-  console.log(user.value)
 
-  // if (user.value.groups.includes('scholarly-admin')) {
-  //   admin.value = true
-  // }
+  if (user.value && user.value.roles && user.value.roles.includes('admin')) {
+    admin.value = true
+  }
 
   loading.value = false
 })
@@ -93,7 +87,8 @@ const handleLogout = async () => {
 
   if (res.ok) {
     user.value = {}
-    mongoUser.value = {}
+
+    router.push('/')
   }
 }
 

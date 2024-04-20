@@ -3,9 +3,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 
 import App from './App.vue'
-import ProjectDashboardScreen from './views/ProjectDashboardScreen.vue'
-import TaskScreen from './views/TaskScreen.vue'
-import ProfileScreen from './views/ProfileScreen.vue'
+import DashboardScreen from './views/DashboardScreen.vue'
+import ProjectScreen from './views/ProjectScreen.vue'
 
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
@@ -15,27 +14,13 @@ const routes = [
   {
     path: '/',
     name: 'dashboard',
-    component: TaskScreen,
+    component: DashboardScreen,
   },
   {
-    path: '/:projectId',
-    component: TaskScreen,
-    props: ({ params: { projectId }}) => ({ projectId })
+    path: '/project/:projectId',
+    name: 'project',
+    component: ProjectScreen,
   },
-  {
-    path: '/projects/:projectId',
-    component: ProjectDashboardScreen,
-    props: ({ params: { projectId }}) => ({ projectId })
-  },
-  {
-    path: '/projects',
-    component: ProjectDashboardScreen
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: ProfileScreen
-  }
 ]
 
 export const router = createRouter({
