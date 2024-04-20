@@ -11,19 +11,30 @@
         <b-row 
           v-for="task in tasks" 
           @click="() => openEditTaskModal(task)" 
-          class="py-2 shadow m-4 px-4 d-flex flex-column">
-          <b-row>
-            {{ task.title }}
-          </b-row>
-          <b-row style="font-size: .9rem; color: #aaabbb;">
-            {{ task.description }}
-          </b-row>
-          <b-row class="pt-2">
-            Assigned to
-            <span v-for="(user, idx) in task.userIds">
-              &nbsp;{{ user }}<span v-if="idx !== task.userIds.length - 1">,</span>
+          class="d-flex flex-row justify-content-between">
+          <div class="m-auto d-flex flex-column">
+            <span>
+              {{ formatDate(task.dueDate) }}
             </span>
-          </b-row>
+            <span>
+              Status: {{ task.status }}
+            </span>
+          </div>
+          <div
+            class="py-2 shadow m-4 px-4 d-flex flex-column" style="width: 80%;">
+            <b-row>
+              {{ task.title }}
+            </b-row>
+            <b-row style="font-size: .9rem; color: #aaabbb;">
+              {{ task.description }}
+            </b-row>
+            <b-row class="pt-2">
+              Assigned to
+              <span v-for="(user, idx) in task.userIds">
+                &nbsp;{{ user }}<span v-if="idx !== task.userIds.length - 1">,</span>
+              </span>
+            </b-row>
+          </div>
         </b-row>
       </b-container>
     </b-container>
@@ -100,6 +111,14 @@
               :options="userOptions">
             </b-form-select>
           </b-form-group>
+          <b-form-group
+            label="Status"
+            label-cols="3">
+            <b-form-select
+              v-model="updateTask.status"
+              :options="taskStatusOptions">
+            </b-form-select>
+          </b-form-group>
         </b-form>
       </b-overlay>
       <template #modal-footer>
@@ -133,6 +152,12 @@ interface Props {
   project: IProject
 }
 
+const taskStatusOptions = [
+  { value: 'not-started', text: 'Not started' },
+  { value: 'in-progress', text: 'In progress' },
+  { value: 'complete', text: 'Complete' }
+]
+
 const props = defineProps<Props>()
 
 const loading = ref(false)
@@ -157,6 +182,7 @@ const openEditTaskModal = (task: ITask) => {
   updateTask.value = {
     _id: task._id,
     title: task.title,
+    status: task.status,
     description: task.description,
     dueDate: task.dueDate || new Date(),
     userIds: task.userIds.slice(),
@@ -253,6 +279,12 @@ const refresh = async () => {
     
   } catch (error) {
     return
+  }
+}
+
+const formatDate = (date: Date | string | null) => {
+  if (date) {
+    return new Date(date).toLocaleDateString()
   }
 }
 

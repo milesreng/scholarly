@@ -96,7 +96,7 @@ const handleUpdateProject = async () => {
     if (project.value && updateProject.value && updateUsers.value) {
       updateProject.value.memberIds = updateUsers.value
 
-      const res = await fetch(`/api/projects/${project.value._id}`, {
+      await fetch(`/api/projects/${project.value._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
