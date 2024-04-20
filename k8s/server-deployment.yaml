@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: server
+  name: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+      - image: scholarly-server
+        name: server
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5174
+          name: server
+        env:
+        - name: MONGODB_URI
+          value: fill
+        - name: PORT
+          value: "5174"
+        - name: CLIENT_ID
+          value: fill
+        - name: CLIENT_SECRET
+          value: fill
+        - name: DISABLE_SECURITY
+          value: fill
