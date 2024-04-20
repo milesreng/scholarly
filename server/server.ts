@@ -12,11 +12,9 @@ import expressPinoLogger from 'express-pino-logger'
 import { Issuer, Strategy, generators } from 'openid-client'
 import passport from 'passport'
 
-import { MongoUser } from './models/user.model'
 import userRoutes from './routes/user.routes'
 import taskRoutes from './routes/task.routes'
 import projectRoutes from './routes/project.routes'
-import { checkAuth } from './middleware/checkAuth'
 import { Collection } from 'mongoose'
 
 dotenv.config()
@@ -37,7 +35,7 @@ export const logger = pino({
   }
 })
 
-app.use(expressPinoLogger({ logger }))
+// app.use(expressPinoLogger({ logger }))
 
 app.use(cors({
   origin: 'http://127.0.0.1:3001',
@@ -74,7 +72,7 @@ app.get('/api/auth/login', passport.authenticate('oidc', {
 }))
 
 app.get('/api/auth/callback', passport.authenticate('oidc', {
-  successReturnToOrRedirect: 'http://127.0.0.1:3001/dashboard',
+  successReturnToOrRedirect: 'http://127.0.0.1:3001/',
   failureRedirect: 'http://127.0.0.1:3001',
 }))
 
@@ -111,22 +109,23 @@ mongoose.connect(process.env.MONGODB_URI).then(async () => {
   const verify = async (tokenSet: any, userInfo: any, done: any) => {
     logger.info('oidc', JSON.stringify(userInfo))
 
-    const existUser = await MongoUser.findOne({ oidc_username: userInfo.preferred_username })
+    // const existUser = await MongoUser.findOne({ oidc_username: userInfo.preferred_username })
 
-    console.log('existUser', existUser)
+    // console.log('existUser', existUser)
 
-    if (!existUser) {
-      logger.info('user does not exist')
-      const user = new MongoUser({
-        oidc_username: userInfo.preferred_username,
-        display_name: userInfo.name || null
-      })
+    // if (!existUser) {
+    //   logger.info('user does not exist')
+    //   const user = new MongoUser({
+    //     oidc_username: userInfo.preferred_username,
+    //     display_name: userInfo.name || null
+    //   })
 
-      await user.save()
-    }
+    //   await user.save()
+    // }
 
     // role-based access control:
-    // userInfo.roles = userInfo.groups.includes(ADMIN_GROUP_ID) ? ['admin'] : ['member']
+    const ADMIN_GROUP_ID = 'scholarly-admin'
+    userInfo.roles = userInfo.groups.includes(ADMIN_GROUP_ID) ? ['admin'] : ['member']
     return done(null, userInfo)
   }
 

@@ -9,8 +9,8 @@ export const checkAuth = async (req: Request, res: Response, next: any) => {
 }
 
 export const checkAdmin = async (req: Request, res: Response, next: any) => {
-  if (!(req.user as OIDCUser)?.groups.includes('scholarly-admin')) {
-    if (!req.isAuthenticated()) { return res.status(401) }
+  if (!(req.user as OIDCUser)?.roles.includes('admin') || !req.isAuthenticated()) { 
+    return res.status(401) 
   }
   
   next()

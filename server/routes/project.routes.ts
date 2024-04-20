@@ -18,6 +18,10 @@ router.get('/:id/users', checkAuth, projectController.getUsersByProject)
 router.delete('/:id', checkAuth, projectController.deleteProject)
 
 // @route   GET api/project/:id
+// @desc    Update project
+router.put('/:id', checkAuth, projectController.updateProject)
+
+// @route   GET api/project/:id
 // @desc    Get project by id
 router.get('/:id', checkAuth, projectController.getProjectById)
 
@@ -26,7 +30,7 @@ router.get('/:id', checkAuth, projectController.getProjectById)
 router.post('/', checkAuth, projectController.createProject)
 
 // @route   GET api/project/
-// @desc    Get project by id
+// @desc    Get all projects (admin only route)
 router.get('/', checkAuth, checkAdmin, projectController.getAllProjects)
 
 export default router

@@ -4,6 +4,7 @@ import { OIDCUser } from '../models/user.model'
 import { Request, Response } from 'express'
 import { logger } from '../server'
 import { ObjectId } from 'mongodb'
+import { checkAdmin } from '../middleware/checkAuth'
 
 export const taskController = {
   getTaskById: async (req: Request, res: Response) => {
@@ -29,48 +30,49 @@ export const taskController = {
 
     console.log('task', taskContent)
 
-    const newTask = new Task({
+    await Task.create({
       title: taskContent.title,
       description: taskContent.description,
-      status: taskContent.status || false,
+      status: taskContent.status || 'not-started',
       dueDate: taskContent.dueDate,
       creatorId: (req.user as OIDCUser)?.preferred_username,
       userIds: taskContent.userIds,
       projectId: new mongoose.Types.ObjectId(taskContent.projectId)
     })
 
-    await newTask.save()
 
-    return res.status(200).json(newTask)
+    return res.status(200).json({ status: 'ok' })
   },
-  updateTask: async (req: Request, res: Response) => {
+  updateTask: async (req: Request, res: Response, next: any) => {
     let taskId = req.params.id
     const updateTask = req.body
 
     const task = await Task.findById(taskId)
 
-    if ((req.user as OIDCUser)?.preferred_username !== task.creatorId) {
-      return res.status(401).send('unauthorized')
+    if (task.creatorId !== (req.user as OIDCUser)?.preferred_username) {
+      checkAdmin(req, res, next)
     }
 
     const result = await Task.updateOne(
       { _id: taskId },
       { 
-        title: updateTask.title,
-        description: updateTask.description,
-        userIds: updateTask.userIds,
-        dueDate: updateTask.dueDate,
-        status: updateTask.status
+        $set: {
+          title: updateTask.title,
+          description: updateTask.description,
+          userIds: updateTask.userIds,
+          dueDate: updateTask.dueDate,
+          status: updateTask.status
+        }
       }
     )
 
-    return res.status(200)
+    return res.status(200).send(result)
   },
-  deleteTask: async (req: Request, res: Response) => {
+  deleteTask: async (req: Request, res: Response, next: any) => {
     const task = await Task.findById(req.params.id)
 
     if (task.creatorId !== (req.user as OIDCUser)?.preferred_username) {
-      return res.status(401)
+      checkAdmin(req, res, next)
     }
 
     await Task.findByIdAndDelete(req.params.id)
