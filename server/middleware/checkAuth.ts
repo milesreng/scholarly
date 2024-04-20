@@ -3,14 +3,14 @@ import { OIDCUser } from '../models/user.model'
 
 export const checkAuth = async (req: Request, res: Response, next: any) => {
   console.log('Session:', req.session)
-  if (!req.isAuthenticated()) { return res.status(401) }
+  if (!req.isAuthenticated()) { return res.status(401).send('unauthorized') }
   
   next()
 }
 
 export const checkAdmin = async (req: Request, res: Response, next: any) => {
   if (!(req.user as OIDCUser)?.roles.includes('admin') || !req.isAuthenticated()) { 
-    return res.status(401) 
+    return res.status(401).send('unauthorized')
   }
   
   next()

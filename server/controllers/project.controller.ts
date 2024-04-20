@@ -10,12 +10,16 @@ export const projectController = {
   getProjectById: async (req: Request, res: Response, next: any) => {
     try {
       const projectId = req.params.id
-      logger.info(req.user)
+      
+      console.log('user', req.user)
+      
       const userId = (req.user as OIDCUser).preferred_username
 
       const project = await Project.findById(new ObjectId(projectId))
 
-      if (!project || !project.memberIds.includes(userId) || project.creatorId !== userId) {
+      console.log('project', project.creatorId === userId)
+
+      if (!project || (!project.memberIds.includes(userId) && project.creatorId !== userId)) {
         checkAdmin(req, res, next)
       }
 

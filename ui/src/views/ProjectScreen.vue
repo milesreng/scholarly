@@ -122,9 +122,12 @@ const refresh = async () => {
   loading.value = true
   const res = await fetch(`/api/projects/${route.params.projectId}`)
 
+
   if (res.ok) {
     project.value = await res.json()
   }
+
+  console.log(project.value)
 
   updateProject.value = {
     title: project.value?.title,

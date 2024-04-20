@@ -11,8 +11,6 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('link', { name: 'Log in'}).click()
 })
 
-const TASK_ITEMS = []
-
 test.describe('Interacting with projects', () => {
   test('create new projects', async ({ page }) => {
     
@@ -33,7 +31,7 @@ test.describe('Interacting with projects', () => {
   });
 
   test('view and edit project', async ({ page }) => {
-    await page.getByRole('link', { name: 'COMPSCI 590 Final Project' }).click()
+    await page.getByRole('link', { name: 'Edit this' }).click()
 
     await page.locator('.row > span').first().click()
     
@@ -55,7 +53,7 @@ test.describe('Interacting with tasks', () => {
 
   test('create a new task', async ({ page }) => {
 
-    await page.getByRole('link', { name: 'COMPSCI 590 Final Project' }).click()
+    await page.getByRole('link', { name: 'Demo Tasks' }).click()
     
     await page.getByText('Create a new task').click()
 
@@ -73,15 +71,32 @@ test.describe('Interacting with tasks', () => {
 
     const response = await responsePromise
 
-    await expect(page.getByText('Assigned to test')).toBeVisible()
+    await expect(page.getByText('Develop mock-ups for app')).toBeVisible()
   })
 
   test('Update task status', async ({ page }) => {
-    await page.getByRole('link', { name: 'COMPSCI 590 Final Project' }).click()
+    await page.getByRole('link', { name: 'Demo Tasks' }).click()
+
+    let responsePromise = page.waitForResponse((response) => {
+      return response.status() === 200
+    })
+
+    let response = await responsePromise
 
     await page.getByText('Develop mock-ups for app').click()
 
+    await page.getByLabel('Title').fill('Develop slide deck for app')
+    await page.getByLabel('Status').selectOption('In progress')
 
+    responsePromise = page.waitForResponse((response) => {
+      return response.status() === 200
+    })
+
+    await page.getByRole('button', { name: 'Save changes' }).click()
+
+    response = await responsePromise
+
+    await expect(page.getByText('Develop slide deck for app')).toBeVisible()
   })
 })
 
