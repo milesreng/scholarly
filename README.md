@@ -5,8 +5,11 @@ This project is a secure web application designed to enhance collaboration on re
 
 ## Technologies Used
 Backend: Node.js, Express.js, MongoDB
+
 Frontend: Vue.js
+
 Deployment: Kubernetes
+
 Authentication: OpenID Connect (OIDC), OAuth2
 
 ## Features
